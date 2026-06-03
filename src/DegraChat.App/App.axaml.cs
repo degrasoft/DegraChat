@@ -12,6 +12,7 @@ using DegraChat.Chat.Kick;
 using DegraChat.Chat.Twitch;
 using DegraChat.Chat.VKPlay;
 using DegraChat.Chat.YouTube;
+using DegraChat.Core.Events;
 using DegraChat.Core.Interfaces;
 using DegraChat.Core.Models;
 using DegraChat.Core.Services;
@@ -28,7 +29,6 @@ namespace DegraChat.App;
 public class App : Application
 {
     private IHost? _host;
-    private IDisposable? _logSubscription;
 
     public override void Initialize()
     {

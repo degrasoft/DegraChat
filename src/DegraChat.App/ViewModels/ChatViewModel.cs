@@ -39,7 +39,7 @@ public partial class ChatViewModel : ObservableObject
         var vm = new ChatMessageViewModel(e.Message);
 
         // Insert at beginning (newest first)
-        System.Application.Current?.Dispatcher.Invoke(() =>
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             Messages.Insert(0, vm);
 
