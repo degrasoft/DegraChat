@@ -32,4 +32,15 @@ public partial class MainWindow : Window
             }
         }
     }
+
+    private void OnSettingsTabClick(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border border && border.Tag is string tag && int.TryParse(tag, out var tabIndex))
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                vm.SelectedSettingsTab = tabIndex;
+            }
+        }
+    }
 }

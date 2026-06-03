@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using DegraChat.Core.Events;
 using DegraChat.Core.Interfaces;
@@ -66,6 +67,33 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<LogEntry> _serverLog = new();
 
+    [ObservableProperty]
+    private int _selectedSettingsTab;
+
+    // Settings tab visibility
+    public bool IsServerSettingsTab => SelectedSettingsTab == 0;
+    public bool IsOverlaySettingsTab => SelectedSettingsTab == 1;
+    public bool IsStorageSettingsTab => SelectedSettingsTab == 2;
+    public bool IsHotkeysSettingsTab => SelectedSettingsTab == 3;
+    public bool IsInterfaceSettingsTab => SelectedSettingsTab == 4;
+    public bool IsDiagnosticsSettingsTab => SelectedSettingsTab == 5;
+    public bool IsAboutSettingsTab => SelectedSettingsTab == 6;
+
+    partial void OnSelectedSettingsTabChanged(int value)
+    {
+        OnPropertyChanged(nameof(IsServerSettingsTab));
+        OnPropertyChanged(nameof(IsOverlaySettingsTab));
+        OnPropertyChanged(nameof(IsStorageSettingsTab));
+        OnPropertyChanged(nameof(IsHotkeysSettingsTab));
+        OnPropertyChanged(nameof(IsInterfaceSettingsTab));
+        OnPropertyChanged(nameof(IsDiagnosticsSettingsTab));
+        OnPropertyChanged(nameof(IsAboutSettingsTab));
+    }
+
+    // Connected platforms count
+    public int ConnectedPlatformsCount => ConnectionViewModel?.Connections.Count(c => c.State == ConnectionState.Connected) ?? 0;
+    public int TotalPlatformsCount => ConnectionViewModel?.Connections.Count ?? 5;
+
     private DateTime _serverStartTime;
 
     public MainViewModel(
@@ -92,8 +120,6 @@ public partial class MainViewModel : ObservableObject
         _wsServer.ClientConnected += (_, count) => ConnectedClients = count;
         _wsServer.ClientDisconnected += (_, count) => ConnectedClients = count;
 
-        // When a connection state changes, restart the server
-        // to pick up new chat message routing
         _connectionStateSubscription = _eventAggregator.Subscribe<ConnectionStateChangedEvent>(OnConnectionStateChanged);
     }
 
@@ -101,7 +127,7 @@ public partial class MainViewModel : ObservableObject
     {
         IsServerRunning = true;
         _serverStartTime = DateTime.UtcNow;
-        ServerStatusText = $"Запущен (порт 9274)";
+        ServerStatusText = "Запущен (порт 9274)";
         AddLogEntry("INFO", "Сервер запущен на ws://127.0.0.1:9274");
     }
 
@@ -115,9 +141,12 @@ public partial class MainViewModel : ObservableObject
 
     private void OnConnectionStateChanged(ConnectionStateChangedEvent e)
     {
-        // Auto-restart server when connections change
-        // This ensures the WebSocket server picks up the new message routing
         _ = RestartServerOnConnectionChangeAsync(e);
+        // Update connected platforms count
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            OnPropertyChanged(nameof(ConnectedPlatformsCount));
+        });
     }
 
     private async Task RestartServerOnConnectionChangeAsync(ConnectionStateChangedEvent e)
@@ -138,7 +167,6 @@ public partial class MainViewModel : ObservableObject
 
             if (IsServerRunning)
             {
-                // Restart server to refresh subscriptions
                 await _wsServer.StopAsync();
                 await _wsServer.StartAsync();
                 AddLogEntry("INFO", "Сервер перезапущен после изменения подключений");
@@ -210,11 +238,9 @@ public partial class MainViewModel : ObservableObject
             await ConnectionViewModel.LoadSavedConfigsAsync();
             await EditorViewModel.InitializeAsync();
 
-            // Server always auto-starts with the application
             AddLogEntry("INFO", "Автозапуск сервера при старте приложения");
             await _wsServer.StartAsync();
 
-            // Auto-connect platforms that were connected in the last session
             await ConnectionViewModel.AutoReconnectAsync();
         }
         catch (Exception ex)
@@ -233,11 +259,9 @@ public partial class MainViewModel : ObservableObject
             Message = message
         };
 
-        // Add on UI thread
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             ServerLog.Add(entry);
-            // Keep last 200 entries
             while (ServerLog.Count > 200)
                 ServerLog.RemoveAt(0);
         });

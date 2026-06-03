@@ -241,7 +241,8 @@ public class SettingsManager
     private static string EncryptWithDpapi(string plainText)
     {
         var bytes = Encoding.UTF8.GetBytes(plainText);
-        var encrypted = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
+        var entropy = Encoding.UTF8.GetBytes("Degrachat.TokenProtection");
+        var encrypted = ProtectedData.Protect(bytes, entropy, DataProtectionScope.CurrentUser);
         return "dpapi:" + Convert.ToBase64String(encrypted);
     }
 
@@ -257,7 +258,8 @@ public class SettingsManager
 
         var base64 = encryptedText["dpapi:".Length..];
         var bytes = Convert.FromBase64String(base64);
-        var decrypted = ProtectedData.Unprotect(bytes, null, DataProtectionScope.CurrentUser);
+        var entropy = Encoding.UTF8.GetBytes("Degrachat.TokenProtection");
+        var decrypted = ProtectedData.Unprotect(bytes, entropy, DataProtectionScope.CurrentUser);
         return Encoding.UTF8.GetString(decrypted);
     }
 

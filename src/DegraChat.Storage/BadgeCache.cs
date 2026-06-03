@@ -24,7 +24,7 @@ public class BadgeCache : IAsyncDisposable
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "DegraChat");
         Directory.CreateDirectory(appData);
-        _dbPath = dbPath ?? Path.Combine(appData, "cache.db");
+        _dbPath = dbPath ?? Path.Combine(appData, "degrachat.db");
     }
 
     public async Task InitializeAsync()

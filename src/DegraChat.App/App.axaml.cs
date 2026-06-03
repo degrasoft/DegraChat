@@ -81,14 +81,25 @@ public class App : Application
         var eventAggregator = _host.Services.GetRequiredService<IEventAggregator>();
         foreach (var provider in _host.Services.GetRequiredService<IEnumerable<IChatProvider>>())
         {
+            // Wire message received events
             provider.MessageReceived += (sender, args) =>
             {
                 eventAggregator.Publish(new ChatMessageReceivedEvent(args.Message));
             };
-        }
 
-        // Wire event aggregator → WebSocket server broadcast
-        var wsServer = _host.Services.GetRequiredService<OverlayWebSocketServer>();
+            // Wire connection state changed events (with Platform mapping)
+            provider.ConnectionStateChanged += (sender, args) =>
+            {
+                if (sender is IChatProvider chatProvider)
+                {
+                    eventAggregator.Publish(new ConnectionStateChangedEvent(
+                        chatProvider.Platform,
+                        args.OldState,
+                        args.NewState,
+                        args.ErrorMessage));
+                }
+            };
+        }
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
