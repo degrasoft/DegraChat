@@ -18,11 +18,9 @@ public class KickChatProvider : ChatProviderBase
 {
     private ClientWebSocket? _webSocket;
     private string? _channelName;
-    private int _channelId;
     private string? _chatroomId;
     private Task? _receiveLoopTask;
     private Timer? _heartbeatTimer;
-    private int _phoenixRef;
     private readonly HttpClient _httpClient;
 
     private static readonly Uri KickWsUri = new("wss://ws-us2.pusherapp.com/app/32cbd69e76a5f0202820?protocol=7&client=js&version=7.6.0&flash=false");

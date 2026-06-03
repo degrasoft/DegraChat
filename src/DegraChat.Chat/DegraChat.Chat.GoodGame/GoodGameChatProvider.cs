@@ -16,7 +16,6 @@ public class GoodGameChatProvider : ChatProviderBase
 {
     private ClientWebSocket? _webSocket;
     private string? _channelName;
-    private int _channelId;
     private Task? _receiveLoopTask;
 
     private static readonly Uri GgWsUri = new("wss://chat.goodgame.ru/chat/websocket");

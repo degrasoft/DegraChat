@@ -8,7 +8,7 @@ using DegraChat.Core.Models;
 using Serilog;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
-using TwitchLib.Client.Models;
+using TwitchChatMessage = TwitchLib.Client.Models.ChatMessage;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 
@@ -30,7 +30,7 @@ public class TwitchChatProvider : ChatProviderBase
     {
         _channelName = config.ChannelName.ToLowerInvariant();
 
-        var credentials = new ConnectionCredentials(
+        var credentials = new TwitchLib.Client.Models.ConnectionCredentials(
             config.ChannelName,
             config.OAuthToken ?? throw new InvalidOperationException("Twitch OAuth token is required"));
 
@@ -156,13 +156,13 @@ public class TwitchChatProvider : ChatProviderBase
         State = ConnectionState.Error;
     }
 
-    private void OnReconnected(object? sender, OnReconnectedArgs e)
+    private void OnReconnected(object? sender, EventArgs e)
     {
         Logger.Information("Twitch: Reconnected");
         State = ConnectionState.Connected;
     }
 
-    private static string[] ParseBadges(ChatMessage chatMessage)
+    private static string[] ParseBadges(TwitchChatMessage chatMessage)
     {
         var badges = new List<string>();
         foreach (var badge in chatMessage.Badges)
@@ -173,7 +173,7 @@ public class TwitchChatProvider : ChatProviderBase
         return badges.ToArray();
     }
 
-    private static Dictionary<string, string> ParseEmotes(ChatMessage chatMessage)
+    private static Dictionary<string, string> ParseEmotes(TwitchChatMessage chatMessage)
     {
         var emotes = new Dictionary<string, string>();
         if (chatMessage.EmoteSet == null) return emotes;

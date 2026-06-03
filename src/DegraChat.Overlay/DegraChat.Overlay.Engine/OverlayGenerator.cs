@@ -81,7 +81,7 @@ public class OverlayGenerator
         var context = new TemplateContext();
         context.PushGlobal(scriptObject);
 
-        var result = await Task.Run(() => context.Render(template), cancellationToken);
+        var result = await Task.Run(() => template.Render(context), cancellationToken);
 
         _logger.Information("Overlay generated successfully ({Length} characters)", result.Length);
         return result;

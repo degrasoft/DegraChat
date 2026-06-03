@@ -7,8 +7,10 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using DegraChat.Core.Events;
 using DegraChat.Core.Interfaces;
 using DegraChat.Core.Models;
+using DegraChat.Core.Services;
 using Serilog;
 
 namespace DegraChat.Server;

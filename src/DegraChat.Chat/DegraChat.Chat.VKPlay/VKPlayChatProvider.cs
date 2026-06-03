@@ -16,7 +16,6 @@ public class VKPlayChatProvider : ChatProviderBase
 {
     private ClientWebSocket? _webSocket;
     private string? _channelName;
-    private string? _channelId;
     private Task? _receiveLoopTask;
     private Timer? _pingTimer;
 

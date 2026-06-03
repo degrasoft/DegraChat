@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -12,7 +13,8 @@ namespace DegraChat.Storage;
 
 /// <summary>
 /// Manages application settings stored as JSON files in %AppData%/DegraChat/.
-/// Sensitive tokens are encrypted using Windows DPAPI.
+/// Sensitive tokens are encrypted using Windows DPAPI on Windows,
+/// or AES-256 with a machine-derived key on other platforms.
 /// </summary>
 public class SettingsManager
 {
@@ -23,6 +25,9 @@ public class SettingsManager
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true
     };
+
+    // AES key for non-Windows platforms (derived from machine-specific data)
+    private static byte[]? _aesKey;
 
     public SettingsManager(ILogger logger)
     {
@@ -186,7 +191,7 @@ public class SettingsManager
         return JsonSerializer.Deserialize<WindowState>(json, _jsonOptions);
     }
 
-    // ---- DPAPI Encryption ----
+    // ---- Encryption ----
 
     private static string? EncryptValue(string? plainText)
     {
@@ -194,13 +199,18 @@ public class SettingsManager
 
         try
         {
-            var bytes = Encoding.UTF8.GetBytes(plainText);
-            var encrypted = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
-            return Convert.ToBase64String(encrypted);
+            if (OperatingSystem.IsWindows())
+            {
+                return EncryptWithDpapi(plainText);
+            }
+            else
+            {
+                return EncryptWithAes(plainText);
+            }
         }
         catch
         {
-            // DPAPI not available (non-Windows), store as-is
+            // Encryption not available, store as-is (should only happen in exceptional cases)
             return plainText;
         }
     }
@@ -211,15 +221,98 @@ public class SettingsManager
 
         try
         {
-            var bytes = Convert.FromBase64String(encryptedText);
-            var decrypted = ProtectedData.Unprotect(bytes, null, DataProtectionScope.CurrentUser);
-            return Encoding.UTF8.GetString(decrypted);
+            if (OperatingSystem.IsWindows())
+            {
+                return DecryptWithDpapi(encryptedText);
+            }
+            else
+            {
+                return DecryptWithAes(encryptedText);
+            }
         }
         catch
         {
-            // If decryption fails, might be plain text (non-Windows or not encrypted)
+            // If decryption fails, might be plain text or encrypted on a different platform
             return encryptedText;
         }
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string EncryptWithDpapi(string plainText)
+    {
+        var bytes = Encoding.UTF8.GetBytes(plainText);
+        var encrypted = ProtectedData.Protect(bytes, null, DataProtectionScope.CurrentUser);
+        return "dpapi:" + Convert.ToBase64String(encrypted);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string DecryptWithDpapi(string encryptedText)
+    {
+        // Check if this was encrypted with DPAPI
+        if (!encryptedText.StartsWith("dpapi:"))
+        {
+            // Might be AES-encrypted or plain text
+            return encryptedText;
+        }
+
+        var base64 = encryptedText["dpapi:".Length..];
+        var bytes = Convert.FromBase64String(base64);
+        var decrypted = ProtectedData.Unprotect(bytes, null, DataProtectionScope.CurrentUser);
+        return Encoding.UTF8.GetString(decrypted);
+    }
+
+    private static string EncryptWithAes(string plainText)
+    {
+        var key = GetOrCreateAesKey();
+        using var aes = Aes.Create();
+        aes.Key = key;
+        aes.GenerateIV();
+        using var encryptor = aes.CreateEncryptor();
+        var plainBytes = Encoding.UTF8.GetBytes(plainText);
+        var encrypted = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
+        // Prepend IV to encrypted data
+        var result = new byte[aes.IV.Length + encrypted.Length];
+        Buffer.BlockCopy(aes.IV, 0, result, 0, aes.IV.Length);
+        Buffer.BlockCopy(encrypted, 0, result, aes.IV.Length, encrypted.Length);
+        return "aes:" + Convert.ToBase64String(result);
+    }
+
+    private static string DecryptWithAes(string encryptedText)
+    {
+        if (!encryptedText.StartsWith("aes:"))
+        {
+            // Might be DPAPI-encrypted or plain text
+            return encryptedText;
+        }
+
+        var base64 = encryptedText["aes:".Length..];
+        var data = Convert.FromBase64String(base64);
+
+        var key = GetOrCreateAesKey();
+        using var aes = Aes.Create();
+        aes.Key = key;
+        // Extract IV from the beginning
+        var iv = new byte[aes.BlockSize / 8];
+        var cipherText = new byte[data.Length - iv.Length];
+        Buffer.BlockCopy(data, 0, iv, 0, iv.Length);
+        Buffer.BlockCopy(data, iv.Length, cipherText, 0, cipherText.Length);
+        aes.IV = iv;
+
+        using var decryptor = aes.CreateDecryptor();
+        var decrypted = decryptor.TransformFinalBlock(cipherText, 0, cipherText.Length);
+        return Encoding.UTF8.GetString(decrypted);
+    }
+
+    private static byte[] GetOrCreateAesKey()
+    {
+        if (_aesKey != null) return _aesKey;
+
+        // Derive a key from machine-specific data (username + machine name)
+        var machineId = $"{Environment.MachineName}:{Environment.UserName}:DegraChat-v1";
+        var salt = Encoding.UTF8.GetBytes("DegraChat-Salt-v1");
+        using var deriveBytes = new Rfc2898DeriveBytes(machineId, salt, 100_000, HashAlgorithmName.SHA256);
+        _aesKey = deriveBytes.GetBytes(32); // AES-256
+        return _aesKey;
     }
 
     // ---- Helpers ----

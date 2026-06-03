@@ -1,76 +1,104 @@
-name: Build DegraChat
+name: Build & Test
 
 on:
   push:
     branches: [ main, develop ]
-    tags: [ 'v*' ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 env:
   DOTNET_VERSION: '8.0.x'
-  PROJECT_PATH: 'DegraChat.sln'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: 'true'
+  NUGET_XMLDOC_MODE: 'skip'
 
 jobs:
   build:
-    name: Build & Test
+    name: Build Solution
     runs-on: windows-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
-      run: dotnet restore ${{ env.PROJECT_PATH }}
+      - name: Restore NuGet packages
+        run: dotnet restore DegraChat.sln
 
-    - name: Build (Debug)
-      run: dotnet build ${{ env.PROJECT_PATH }} --configuration Debug --no-restore
+      - name: Build solution (Release)
+        run: dotnet build DegraChat.sln --configuration Release --no-restore --verbosity minimal
 
-    - name: Build (Release)
-      run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+      - name: Build solution (Debug)
+        run: dotnet build DegraChat.sln --configuration Debug --no-restore --verbosity minimal
+
+  test:
+    name: Run Tests
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore NuGet packages
+        run: dotnet restore DegraChat.sln
+
+      - name: Run unit tests
+        run: dotnet test DegraChat.sln --configuration Release --no-restore --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: '**/test-results.trx'
+          retention-days: 7
 
   publish:
     name: Publish Windows Build
     runs-on: windows-latest
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Publish Win-x64
-      run: |
-        dotnet publish src/DegraChat.App/DegraChat.App.csproj `
-          --configuration Release `
-          --runtime win-x64 `
-          --self-contained true `
-          -p:PublishSingleFile=true `
-          -p:IncludeNativeLibrariesForSelfExtract=true `
-          -p:PublishTrimmed=true `
-          -p:TrimMode=partial `
-          --output ./publish/win-x64
+      - name: Restore NuGet packages
+        run: dotnet restore DegraChat.sln
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: DegraChat-win-x64
-        path: ./publish/win-x64/
+      - name: Publish application
+        run: |
+          dotnet publish src/DegraChat.App/DegraChat.App.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ./publish/win-x64 `
+            -p:PublishSingleFile=false `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:PublishTrimmed=false
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        files: ./publish/win-x64/DegraChat.App.exe
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DegraChat-win-x64
+          path: ./publish/win-x64
+          retention-days: 30
