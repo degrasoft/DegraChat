@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DegraChat.Chat.Twitch</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\DegraChat.Core\DegraChat.Core.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat.Abstractions\DegraChat.Chat.Abstractions.csproj" />
+    <PackageReference Include="TwitchLib.Client" Version="4.0.0" />
+    <PackageReference Include="TwitchLib.Api" Version="3.10.0" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+  </ItemGroup>
+</Project>

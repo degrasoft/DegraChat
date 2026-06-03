@@ -1,0 +1,30 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DegraChat.App.App"
+             RequestedThemeVariant="Dark">
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+    <Application.Resources>
+        <!-- DegraChat Color Scheme -->
+        <SolidColorBrush x:Key="AppBackground">#151515</SolidColorBrush>
+        <SolidColorBrush x:Key="PanelBackground">#202020</SolidColorBrush>
+        <SolidColorBrush x:Key="AccentBrush">#00C896</SolidColorBrush>
+        <SolidColorBrush x:Key="WarningBrush">#FFB84D</SolidColorBrush>
+        <SolidColorBrush x:Key="ErrorBrush">#FF5C5C</SolidColorBrush>
+        <SolidColorBrush x:Key="TextPrimary">#F4F4F4</SolidColorBrush>
+        <SolidColorBrush x:Key="TextSecondary">#B0B0B0</SolidColorBrush>
+        <SolidColorBrush x:Key="TextMuted">#777777</SolidColorBrush>
+        <SolidColorBrush x:Key="ElevatedBackground">#2A2A2A</SolidColorBrush>
+        <SolidColorBrush x:Key="HoverBackground">#333333</SolidColorBrush>
+        <SolidColorBrush x:Key="BorderBrush">#3A3A3A</SolidColorBrush>
+        <SolidColorBrush x:Key="BorderSubtleBrush">#2C2C2C</SolidColorBrush>
+
+        <!-- Platform Colors -->
+        <SolidColorBrush x:Key="TwitchBrush">#9146FF</SolidColorBrush>
+        <SolidColorBrush x:Key="GoodGameBrush">#00CC00</SolidColorBrush>
+        <SolidColorBrush x:Key="KickBrush">#53FC18</SolidColorBrush>
+        <SolidColorBrush x:Key="VKPlayBrush">#0077FF</SolidColorBrush>
+        <SolidColorBrush x:Key="YouTubeBrush">#FF0000</SolidColorBrush>
+    </Application.Resources>
+</Application>

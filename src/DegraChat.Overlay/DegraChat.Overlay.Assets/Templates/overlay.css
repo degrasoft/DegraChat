@@ -1,0 +1,138 @@
+{{ css_variables }}
+
+/* ========================================
+   ChatOverlay Studio — Base Styles
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: transparent;
+    overflow: hidden;
+    font-family: var(--cos-message-font-family);
+}
+
+#chat-container {
+    display: flex;
+    flex-direction: var(--chat-direction, column-reverse);
+    padding: var(--cos-padding);
+    gap: var(--cos-message-spacing);
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+/* ---- Message ---- */
+
+.chat-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--cos-border-radius);
+    background: rgba(0, 0, 0, var(--cos-background-opacity));
+    word-break: break-word;
+    animation: messageIn var(--cos-animation-duration) ease;
+}
+
+.chat-message.system {
+    color: #FF6600;
+    font-style: italic;
+}
+
+.chat-message.highlighted {
+    border-left: 3px solid #FFD700;
+}
+
+/* ---- Platform Icon ---- */
+
+.chat-message .platform-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+/* ---- Badges ---- */
+
+.chat-message .badges {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.chat-message .badges img {
+    width: var(--cos-badge-size);
+    height: var(--cos-badge-size);
+}
+
+/* ---- Username ---- */
+
+.chat-message .username {
+    font-family: var(--cos-username-font-family);
+    font-size: var(--cos-username-font-size);
+    font-weight: var(--cos-username-bold);
+    margin-right: 6px;
+    white-space: nowrap;
+}
+
+/* ---- Text ---- */
+
+.chat-message .text {
+    font-family: var(--cos-message-font-family);
+    font-size: var(--cos-message-font-size);
+    color: var(--cos-message-color);
+    line-height: var(--cos-message-line-height);
+}
+
+/* ---- Emotes ---- */
+
+.chat-message .emote {
+    width: var(--cos-emote-size);
+    height: var(--cos-emote-size);
+    vertical-align: middle;
+    display: inline-block;
+}
+
+/* ---- Separator ---- */
+
+.chat-message + .chat-message.separator {
+    border-top: 1px solid var(--cos-separator-color);
+    padding-top: calc(8px + var(--cos-message-spacing));
+}
+
+/* ---- Shadow ---- */
+
+.chat-message.shadow {
+    box-shadow: var(--cos-shadow-offset-x) var(--cos-shadow-offset-y) var(--cos-shadow-blur) var(--cos-shadow-color);
+}
+
+/* ---- Animations ---- */
+
+@keyframes messageIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes messageOut {
+    from { opacity: 1; }
+    to   { opacity: 0; transform: translateY(-10px); }
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(-20px); }
+}
+
+/* ---- Custom CSS overrides ---- */
+
+{{ custom_css }}

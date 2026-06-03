@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-deep: #151515;
+    --bg-main: #202020;
+    --bg-surface: #202020;
+    --bg-elevated: #2A2A2A;
+    --bg-hover: #333333;
+    --border: #3A3A3A;
+    --border-subtle: #2C2C2C;
+    --text: #F4F4F4;
+    --text-sub: #B0B0B0;
+    --text-muted: #777777;
+    --accent: #00C896;
+    --accent-dim: rgba(0,200,150,0.12);
+    --twitch: #9146FF;
+    --goodgame: #00CC00;
+    --kick: #53FC18;
+    --vkplay: #0077FF;
+    --youtube: #FF0000;
+    --success: #00C896;
+    --warning: #FFB84D;
+    --error: #FF5C5C;
+    --radius: 8px;
+    --radius-sm: 5px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  #root {
+    width: fit-content;
+    min-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+  }
+
+  .page-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 8px; color: var(--text); }
+  .page-title .accent { color: var(--accent); }
+  .page-subtitle { font-size: 14px; text-align: center; color: var(--text-sub); margin-bottom: 48px; }
+
+  .screen-section { margin-bottom: 56px; }
+  .screen-title { font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .screen-desc { font-size: 13px; color: var(--text-sub); margin-bottom: 20px; max-width: 700px; }
+
+  .app-shell {
+    background: var(--bg-main);
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    display: flex;
+    min-height: 520px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* Activity Bar — 4 tabs only */
+  .activity-bar {
+    width: 52px;
+    background: var(--bg-deep);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .ab-icon {
+    width: 38px; height: 38px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative;
+    transition: all 0.15s;
+  }
+  .ab-icon img {
+    width: 22px; height: 22px;
+    filter: brightness(0) saturate(100%) invert(55%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(80%);
+    transition: filter 0.15s;
+  }
+  .ab-icon:hover { background: var(--bg-hover); }
+  .ab-icon:hover img { filter: brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(90%); }
+  .ab-icon.active { background: var(--accent-dim); }
+  .ab-icon.active img { filter: brightness(0) saturate(100%) invert(65%) sepia(80%) saturate(500%) hue-rotate(120deg) brightness(100%) contrast(100%); }
+  .ab-icon.active::before {
+    content: ''; position: absolute;
+    left: -6px; top: 8px; bottom: 8px;
+    width: 3px; border-radius: 0 3px 3px 0;
+    background: var(--accent);
+  }
+  .ab-spacer { flex: 1; }
+
+  /* Side Panel */
+  .side-panel {
+    width: 240px;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-subtle);
+    display: flex; flex-direction: column;
+    flex-shrink: 0;
+  }
+  .sp-header {
+    padding: 12px 16px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .sp-body { flex: 1; overflow: hidden; padding: 8px; }
+
+  /* Main Content */
+  .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .mc-toolbar {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: center; gap: 12px;
+    min-height: 44px; flex-shrink: 0;
+  }
+  .mc-body { flex: 1; overflow: hidden; }
+
+  /* Status Bar */
+  .status-bar {
+    background: var(--bg-deep);
+    border-top: 1px solid var(--border-subtle);
+    padding: 4px 16px; font-size: 11px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 16px;
+    flex-shrink: 0;
+  }
+  .sb-item { display: flex; align-items: center; gap: 6px; }
+  .sb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sb-dot.on { background: var(--success); }
+  .sb-dot.off { background: var(--error); }
+  .sb-icon { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* Buttons */
+  .btn {
+    padding: 6px 14px; border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 600; border: none;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn img { width: 14px; height: 14px; }
+  .btn-primary { background: var(--accent); color: #111; }
+  .btn-primary:hover { background: #00B585; }
+  .btn-primary img { filter: brightness(0); }
+  .btn-ghost { background: transparent; color: var(--text-sub); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg-hover); }
+  .btn-ghost img { filter: brightness(0) invert(75%); }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+  .btn-sm img { width: 12px; height: 12px; }
+  .btn-icon {
+    width: 30px; height: 30px; padding: 0;
+    border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: transparent; color: var(--text-sub);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .btn-icon:hover { background: var(--bg-hover); }
+  .btn-icon img { width: 14px; height: 14px; filter: brightness(0) invert(75%); }
+
+  .input {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 6px 10px;
+    font-size: 12px; color: var(--text); outline: none; width: 100%;
+  }
+  .input:focus { border-color: var(--accent); }
+  .input::placeholder { color: var(--text-muted); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 12px;
+    font-size: 10px; font-weight: 600;
+  }
+  .badge-success { background: rgba(0,200,150,0.12); color: var(--success); }
+  .badge-error { background: rgba(255,92,92,0.12); color: var(--error); }
+  .badge-warning { background: rgba(255,184,77,0.12); color: var(--warning); }
+  .badge-muted { background: var(--bg-elevated); color: var(--text-muted); }
+
+  .platform-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%; flex-shrink: 0; display: inline-block;
+  }
+
+  /* Connection cards */
+  .conn-card {
+    background: var(--bg-elevated);
+    border-radius: var(--radius); padding: 14px;
+    margin-bottom: 8px; border: 1px solid var(--border-subtle);
+    display: grid; grid-template-columns: 40px 1fr auto;
+    gap: 12px; align-items: center;
+  }
+  .conn-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .conn-icon img { width: 20px; height: 20px; }
+  .conn-info { min-width: 0; }
+  .conn-name { font-size: 13px; font-weight: 600; }
+  .conn-channel { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .conn-actions { display: flex; gap: 6px; align-items: center; }
+
+  /* Chat */
+  .chat-list { display: flex; flex-direction: column; }
+  .chat-msg {
+    display: grid; grid-template-columns: 24px 44px 1fr;
+    gap: 8px; padding: 6px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 13px; align-items: start;
+  }
+  .chat-msg:hover { background: var(--bg-hover); }
+  .chat-time { font-size: 10px; color: var(--text-muted); padding-top: 2px; }
+  .chat-user { font-weight: 600; white-space: nowrap; }
+  .chat-text { color: var(--text); word-break: break-word; line-height: 1.4; }
+  .chat-system { color: var(--warning); font-style: italic; }
+
+  .filter-chip {
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 11px; font-weight: 600;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--text-sub); cursor: pointer;
+  }
+  .filter-chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  /* Editor */
+  .editor-grid { display: grid; grid-template-columns: 280px 1fr; height: 100%; }
+  .editor-props {
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-subtle);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .editor-preview { display: flex; flex-direction: column; position: relative; }
+  .prop-section { padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); }
+  .prop-section-title {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); margin-bottom: 10px;
+  }
+  .prop-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .prop-label { font-size: 12px; color: var(--text-sub); }
+  .prop-value { font-size: 12px; color: var(--text); }
+
+  .color-swatch {
+    width: 24px; height: 24px; border-radius: 4px;
+    border: 1px solid var(--border); display: inline-block; vertical-align: middle;
+  }
+  .slider-track { height: 4px; background: var(--bg-hover); border-radius: 2px; width: 100px; position: relative; }
+  .slider-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+  .slider-thumb {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); position: absolute; top: -4px;
+  }
+
+  .preview-frame {
+    margin: 16px; background: #000; border-radius: var(--radius);
+    flex: 1; overflow: hidden; position: relative;
+  }
+  .preview-label {
+    position: absolute; top: 8px; right: 8px;
+    font-size: 10px; color: var(--text-muted);
+    background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px;
+  }
+  .preview-chat { padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .preview-msg {
+    display: flex; align-items: flex-start; gap: 6px;
+    padding: 6px 10px; border-radius: 6px;
+    background: rgba(0,0,0,0.7); font-size: 13px;
+  }
+  .preview-msg .p-user { font-weight: 700; margin-right: 4px; }
+  .preview-msg .p-text { color: #ddd; }
+  .preview-msg .p-platform {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 5px;
+  }
+
+  /* Settings */
+  .settings-grid { display: grid; grid-template-columns: 200px 1fr; height: 100%; }
+  .settings-nav {
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-subtle); padding: 12px 8px;
+  }
+  .settings-nav-item {
+    padding: 8px 12px; border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--text-sub); cursor: pointer; margin-bottom: 2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .settings-nav-item img { width: 16px; height: 16px; filter: brightness(0) invert(70%); }
+  .settings-nav-item:hover { background: var(--bg-hover); }
+  .settings-nav-item.active { background: var(--accent-dim); color: var(--accent); }
+  .settings-nav-item.active img { filter: brightness(0) saturate(100%) invert(65%) sepia(80%) saturate(500%) hue-rotate(120deg) brightness(100%) contrast(100%); }
+  .settings-body { padding: 20px 24px; overflow-y: auto; }
+  .setting-group { margin-bottom: 24px; }
+  .setting-group-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  .setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid var(--border-subtle);
+  }
+  .setting-label { font-size: 13px; color: var(--text-sub); }
+  .setting-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .toggle {
+    width: 36px; height: 20px; border-radius: 10px;
+    background: var(--bg-hover); position: relative; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle .toggle-knob {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; position: absolute; top: 2px; left: 2px;
+    transition: 0.15s;
+  }
+  .toggle.on .toggle-knob { left: 18px; }
+
+  .flow-arrow { text-align: center; color: var(--text-muted); font-size: 24px; padding: 4px 0; }
+
+  /* Diagnostics */
+  .diag-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .diag-card {
+    background: var(--bg-elevated); border-radius: var(--radius);
+    padding: 14px; text-align: center;
+    border: 1px solid var(--border-subtle);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .diag-card .diag-icon { width: 24px; height: 24px; margin-bottom: 2px; }
+  .diag-value { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .diag-label { font-size: 10px; color: var(--text-muted); }
+  .log-box {
+    background: var(--bg-deep); border-radius: var(--radius);
+    padding: 8px 0; border: 1px solid var(--border-subtle);
+    max-height: 200px; overflow-y: auto;
+  }
+  .log-line {
+    padding: 3px 16px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 11px; border-bottom: 1px solid var(--border-subtle);
+  }
+  .log-time { color: var(--text-muted); }
+  .log-info { color: var(--text-sub); }
+  .log-ok { color: var(--success); }
+  .log-err { color: var(--error); }
+</style>
+</head>
+<body>
+<div id="root">
+
+  <div class="page-title"><span class="accent">Degra</span>Chat</div>
+  <div class="page-subtitle">UI Mockup / 4 вкладки / Сервер автоматически стартует / Icons8 Fluency</div>
+
+  <!-- ============ SCREEN 1: Connections ============ -->
+  <div class="screen-section">
+    <div class="screen-title">1. Подключения</div>
+    <div class="screen-desc">Управление подключениями к стриминговым платформам. Side Panel -- быстрый список статусов. Main -- карточки каждой платформы с полями авторизации. Сервер стартует автоматически и перезапускается при изменении подключений.</div>
+
+    <div class="app-shell">
+      <div class="activity-bar">
+        <div class="ab-icon active" title="Подключения">
+          <img src="https://img.icons8.com/fluency/24/link.png" alt="Подключения">
+        </div>
+        <div class="ab-icon" title="Чат">
+          <img src="https://img.icons8.com/fluency/24/chat.png" alt="Чат">
+        </div>
+        <div class="ab-icon" title="Редактор">
+          <img src="https://img.icons8.com/fluency/24/paint-palette.png" alt="Редактор">
+        </div>
+        <div class="ab-spacer"></div>
+        <div class="ab-icon" title="Настройки">
+          <img src="https://img.icons8.com/fluency/24/settings.png" alt="Настройки">
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <div class="sp-header">Платформы</div>
+        <div class="sp-body">
+          <div class="conn-card" style="margin-bottom:6px; grid-template-columns:32px 1fr auto;">
+            <div class="platform-dot" style="background:var(--twitch);"></div>
+            <div><div class="conn-name" style="font-size:12px;">Twitch</div><div class="conn-channel" style="font-size:10px;">shroud</div></div>
+            <span class="badge badge-success">ON</span>
+          </div>
+          <div class="conn-card" style="margin-bottom:6px; grid-template-columns:32px 1fr auto;">
+            <div class="platform-dot" style="background:var(--goodgame);"></div>
+            <div><div class="conn-name" style="font-size:12px;">GoodGame</div><div class="conn-channel" style="font-size:10px;">--</div></div>
+            <span class="badge badge-muted">OFF</span>
+          </div>
+          <div class="conn-card" style="margin-bottom:6px; grid-template-columns:32px 1fr auto;">
+            <div class="platform-dot" style="background:var(--kick);"></div>
+            <div><div class="conn-name" style="font-size:12px;">Kick</div><div class="conn-channel" style="font-size:10px;">xqc</div></div>
+            <span class="badge badge-success">ON</span>
+          </div>
+          <div class="conn-card" style="margin-bottom:6px; grid-template-columns:32px 1fr auto;">
+            <div class="platform-dot" style="background:var(--vkplay);"></div>
+            <div><div class="conn-name" style="font-size:12px;">VKPlay</div><div class="conn-channel" style="font-size:10px;">--</div></div>
+            <span class="badge badge-muted">OFF</span>
+          </div>
+          <div class="conn-card" style="grid-template-columns:32px 1fr auto;">
+            <div class="platform-dot" style="background:var(--youtube);"></div>
+            <div><div class="conn-name" style="font-size:12px;">YouTube</div><div class="conn-channel" style="font-size:10px;">--</div></div>
+            <span class="badge badge-error">ERR</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="mc-toolbar">
+          <span style="font-size:14px;font-weight:600;">Подключения</span>
+          <span style="flex:1;"></span>
+          <button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/import.png" alt=""> Импорт</button>
+          <button class="btn btn-primary btn-sm"><img src="https://img.icons8.com/fluency/16/plus.png" alt=""> Добавить</button>
+        </div>
+        <div class="mc-body" style="padding:16px; overflow-y:auto;">
+          <div class="conn-card">
+            <div class="conn-icon" style="background:var(--twitch);">
+              <img src="https://img.icons8.com/fluency/20/twitch.png" alt="Twitch">
+            </div>
+            <div class="conn-info">
+              <div class="conn-name">Twitch <span class="badge badge-success" style="margin-left:6px;">Подключено</span></div>
+              <div class="conn-channel">Канал: shroud / IRC через TwitchLib</div>
+            </div>
+            <div class="conn-actions"><button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/disconnect.png" alt=""> Отключить</button></div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-icon" style="background:var(--goodgame);">
+              <img src="https://img.icons8.com/fluency/20/messaging-.png" alt="GoodGame">
+            </div>
+            <div class="conn-info">
+              <div class="conn-name">GoodGame <span class="badge badge-muted" style="margin-left:6px;">Отключено</span></div>
+              <div style="margin-top:8px; display:flex; gap:8px;">
+                <input class="input" placeholder="Название канала" style="width:160px;">
+              </div>
+            </div>
+            <div class="conn-actions"><button class="btn btn-primary btn-sm"><img src="https://img.icons8.com/fluency/16/connect.png" alt=""> Подключить</button></div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-icon" style="background:var(--kick); padding:6px;">
+              <img src="https://img.icons8.com/fluency/20/kick.png" alt="Kick" style="filter: brightness(0);">
+            </div>
+            <div class="conn-info">
+              <div class="conn-name">Kick <span class="badge badge-success" style="margin-left:6px;">Подключено</span></div>
+              <div class="conn-channel">Канал: xqc / Pusher WebSocket</div>
+            </div>
+            <div class="conn-actions"><button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/disconnect.png" alt=""> Отключить</button></div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-icon" style="background:var(--vkplay);">
+              <img src="https://img.icons8.com/fluency/20/vk.png" alt="VKPlay">
+            </div>
+            <div class="conn-info">
+              <div class="conn-name">VKPlay <span class="badge badge-muted" style="margin-left:6px;">Отключено</span></div>
+              <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                <input class="input" placeholder="Название канала" style="width:140px;">
+                <input class="input" placeholder="Access Token" type="password" style="width:180px;">
+              </div>
+            </div>
+            <div class="conn-actions"><button class="btn btn-primary btn-sm"><img src="https://img.icons8.com/fluency/16/connect.png" alt=""> Подключить</button></div>
+          </div>
+          <div class="conn-card">
+            <div class="conn-icon" style="background:var(--youtube);">
+              <img src="https://img.icons8.com/fluency/20/youtube.png" alt="YouTube">
+            </div>
+            <div class="conn-info">
+              <div class="conn-name">YouTube <span class="badge badge-error" style="margin-left:6px;">Ошибка</span></div>
+              <div class="conn-channel" style="color:var(--error);">Не найдена активная трансляция</div>
+              <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+                <input class="input" placeholder="Channel ID или @handle" style="width:180px;">
+                <button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/key.png" alt=""> OAuth</button>
+              </div>
+            </div>
+            <div class="conn-actions"><button class="btn btn-primary btn-sm"><img src="https://img.icons8.com/fluency/16/refresh.png" alt=""> Повторить</button></div>
+          </div>
+        </div>
+        <div class="status-bar">
+          <div class="sb-item"><span class="sb-dot on"></span> 127.0.0.1:9274</div>
+          <div class="sb-item"><img class="sb-icon" src="https://img.icons8.com/fluency/16/monitor.png" alt="" style="filter:brightness(0)invert(55%);"> 2 клиента</div>
+          <div style="flex:1;"></div>
+          <div class="sb-item">2 / 5 платформ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow">|</div>
+
+  <!-- ============ SCREEN 2: Chat ============ -->
+  <div class="screen-section">
+    <div class="screen-title">2. Чат</div>
+    <div class="screen-desc">Единая лента сообщений со всех платформ. Side Panel -- фильтры по платформам и каналу. Main -- скроллящийся список с цветовой индикацией.</div>
+
+    <div class="app-shell">
+      <div class="activity-bar">
+        <div class="ab-icon" title="Подключения">
+          <img src="https://img.icons8.com/fluency/24/link.png" alt="Подключения">
+        </div>
+        <div class="ab-icon active" title="Чат">
+          <img src="https://img.icons8.com/fluency/24/chat.png" alt="Чат">
+        </div>
+        <div class="ab-icon" title="Редактор">
+          <img src="https://img.icons8.com/fluency/24/paint-palette.png" alt="Редактор">
+        </div>
+        <div class="ab-spacer"></div>
+        <div class="ab-icon" title="Настройки">
+          <img src="https://img.icons8.com/fluency/24/settings.png" alt="Настройки">
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <div class="sp-header">Фильтры</div>
+        <div class="sp-body">
+          <div style="margin-bottom:12px;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">ПЛАТФОРМЫ</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);cursor:pointer;">
+                <input type="checkbox" checked style="accent-color:var(--twitch);"> <span class="platform-dot" style="background:var(--twitch);"></span> Twitch
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);cursor:pointer;">
+                <input type="checkbox" style="accent-color:var(--goodgame);"> <span class="platform-dot" style="background:var(--goodgame);"></span> GoodGame
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);cursor:pointer;">
+                <input type="checkbox" checked style="accent-color:var(--kick);"> <span class="platform-dot" style="background:var(--kick);"></span> Kick
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);cursor:pointer;">
+                <input type="checkbox" style="accent-color:var(--vkplay);"> <span class="platform-dot" style="background:var(--vkplay);"></span> VKPlay
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);cursor:pointer;">
+                <input type="checkbox" style="accent-color:var(--youtube);"> <span class="platform-dot" style="background:var(--youtube);"></span> YouTube
+              </label>
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">ТИП</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);"><input type="checkbox" checked> Сообщения</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);"><input type="checkbox"> Системные</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-sub);"><input type="checkbox"> Выделенные</label>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">ПОИСК</div>
+            <div style="position:relative;">
+              <input class="input" placeholder="Поиск по нику или тексту..." style="padding-left:28px;">
+              <img src="https://img.icons8.com/fluency/16/search.png" alt="" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);width:14px;height:14px;filter:brightness(0)invert(55%);">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="mc-toolbar">
+          <span style="font-size:14px;font-weight:600;">Чат</span>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">142 сообщения</span>
+          <span style="flex:1;"></span>
+          <div class="filter-chip active">Все</div>
+          <div class="filter-chip">Twitch</div>
+          <div class="filter-chip">Kick</div>
+          <button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/clear.png" alt=""> Очистить</button>
+        </div>
+        <div class="mc-body" style="overflow-y:auto;">
+          <div class="chat-list">
+            <div class="chat-msg">
+              <div class="chat-time">20:14</div>
+              <div class="chat-user" style="color:var(--twitch);">shroud <span class="platform-dot" style="background:var(--twitch);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text">GG! That clutch was insane</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:14</div>
+              <div class="chat-user" style="color:#5DADE2;">xqc <span class="platform-dot" style="background:var(--kick);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text">OMEGALUL what a play</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:13</div>
+              <div class="chat-user" style="color:#FF6B6B;">NightBot <span class="platform-dot" style="background:var(--twitch);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text chat-system">Следующий стрим через 2 часа!</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:13</div>
+              <div class="chat-user" style="color:#7BED9F;">viewer_42 <span class="platform-dot" style="background:var(--kick);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text">Can someone explain the strat?</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:12</div>
+              <div class="chat-user" style="color:#FFD93D;">s1mple_fan <span class="platform-dot" style="background:var(--twitch);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text">LET'S GOOO</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:12</div>
+              <div class="chat-user" style="color:#A29BFE;">cool_guy99 <span class="platform-dot" style="background:var(--kick);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text">first time watching, this is awesome</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:11</div>
+              <div class="chat-user" style="color:#FD79A8;">Luna_strim <span class="platform-dot" style="background:var(--twitch);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text">Hi from Russia!</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:11</div>
+              <div class="chat-user" style="color:var(--twitch);">shroud <span class="platform-dot" style="background:var(--twitch);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text">Thanks for the sub! Welcome to the team</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:10</div>
+              <div class="chat-user" style="color:#74B9FF;">StreamElements <span class="platform-dot" style="background:var(--twitch);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text chat-system">New follower: ProGamer2024</div>
+            </div>
+            <div class="chat-msg">
+              <div class="chat-time">20:10</div>
+              <div class="chat-user" style="color:#55EFC4;">just_chatting <span class="platform-dot" style="background:var(--kick);width:8px;height:8px;display:inline-block;vertical-align:middle;"></span></div>
+              <div class="chat-text">POG POG POG</div>
+            </div>
+          </div>
+        </div>
+        <div class="status-bar">
+          <div class="sb-item"><span class="sb-dot on"></span> 127.0.0.1:9274</div>
+          <div class="sb-item"><img class="sb-icon" src="https://img.icons8.com/fluency/16/monitor.png" alt="" style="filter:brightness(0)invert(55%);"> 2 клиента</div>
+          <div style="flex:1;"></div>
+          <div class="sb-item">Twitch: 89 / Kick: 53</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow">|</div>
+
+  <!-- ============ SCREEN 3: Editor ============ -->
+  <div class="screen-section">
+    <div class="screen-title">3. Редактор оверлея</div>
+    <div class="screen-desc">Визуальный редактор оформления чата для OBS. Левая панель -- свойства стиля. Справа -- живой предпросмотр в реальном времени.</div>
+
+    <div class="app-shell" style="min-height:580px;">
+      <div class="activity-bar">
+        <div class="ab-icon" title="Подключения">
+          <img src="https://img.icons8.com/fluency/24/link.png" alt="Подключения">
+        </div>
+        <div class="ab-icon" title="Чат">
+          <img src="https://img.icons8.com/fluency/24/chat.png" alt="Чат">
+        </div>
+        <div class="ab-icon active" title="Редактор">
+          <img src="https://img.icons8.com/fluency/24/paint-palette.png" alt="Редактор">
+        </div>
+        <div class="ab-spacer"></div>
+        <div class="ab-icon" title="Настройки">
+          <img src="https://img.icons8.com/fluency/24/settings.png" alt="Настройки">
+        </div>
+      </div>
+
+      <div class="main-content" style="flex:1;">
+        <div class="mc-toolbar">
+          <span style="font-size:14px;font-weight:600;">Редактор оверлея</span>
+          <span style="flex:1;"></span>
+          <select style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:12px;color:var(--text);">
+            <option>Default</option>
+            <option>Minimal Dark</option>
+            <option>Neon Glow</option>
+          </select>
+          <button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/plus.png" alt=""> Новый профиль</button>
+          <button class="btn btn-primary btn-sm"><img src="https://img.icons8.com/fluency/16/save.png" alt=""> Сохранить</button>
+        </div>
+        <div class="mc-body">
+          <div class="editor-grid">
+            <div class="editor-props">
+              <div class="prop-section">
+                <div class="prop-section-title">Фон</div>
+                <div class="prop-row">
+                  <span class="prop-label">Цвет</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <span class="color-swatch" style="background:#000000;"></span>
+                    <span class="prop-value">#000000</span>
+                  </div>
+                </div>
+                <div class="prop-row">
+                  <span class="prop-label">Прозрачность</span>
+                  <div class="slider-track"><div class="slider-fill" style="width:70%;"></div><div class="slider-thumb" style="left:67%;"></div></div>
+                  <span class="prop-value" style="margin-left:6px;">0.7</span>
+                </div>
+                <div class="prop-row">
+                  <span class="prop-label">Скругление</span>
+                  <div class="slider-track"><div class="slider-fill" style="width:27%;"></div><div class="slider-thumb" style="left:24%;"></div></div>
+                  <span class="prop-value" style="margin-left:6px;">8px</span>
+                </div>
+              </div>
+              <div class="prop-section">
+                <div class="prop-section-title">Сообщение</div>
+                <div class="prop-row"><span class="prop-label">Шрифт</span><span class="prop-value">Inter</span></div>
+                <div class="prop-row">
+                  <span class="prop-label">Размер</span>
+                  <div class="slider-track"><div class="slider-fill" style="width:40%;"></div><div class="slider-thumb" style="left:37%;"></div></div>
+                  <span class="prop-value" style="margin-left:6px;">16px</span>
+                </div>
+                <div class="prop-row">
+                  <span class="prop-label">Цвет текста</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <span class="color-swatch" style="background:#FFFFFF;"></span>
+                    <span class="prop-value">#FFFFFF</span>
+                  </div>
+                </div>
+                <div class="prop-row"><span class="prop-label">Межстрочный</span><span class="prop-value">1.4</span></div>
+              </div>
+              <div class="prop-section">
+                <div class="prop-section-title">Ник</div>
+                <div class="prop-row"><span class="prop-label">Размер</span><span class="prop-value">14px</span></div>
+                <div class="prop-row"><span class="prop-label">Жирный</span><div class="toggle on"><div class="toggle-knob"></div></div></div>
+              </div>
+              <div class="prop-section">
+                <div class="prop-section-title">Анимация</div>
+                <div class="prop-row"><span class="prop-label">Появление</span><span class="prop-value" style="color:var(--accent);">fadeIn</span></div>
+                <div class="prop-row"><span class="prop-label">Исчезновение</span><span class="prop-value" style="color:var(--accent);">fadeOut</span></div>
+                <div class="prop-row"><span class="prop-label">Длительность</span><span class="prop-value">300ms</span></div>
+                <div class="prop-row"><span class="prop-label">Автоскрытие</span><span class="prop-value">Выкл</span></div>
+              </div>
+              <div class="prop-section">
+                <div class="prop-section-title">Прочее</div>
+                <div class="prop-row"><span class="prop-label">Макс. сообщений</span><span class="prop-value">30</span></div>
+                <div class="prop-row"><span class="prop-label">Иконка платформы</span><div class="toggle on"><div class="toggle-knob"></div></div></div>
+                <div class="prop-row"><span class="prop-label">Тень</span><div class="toggle"><div class="toggle-knob"></div></div></div>
+                <div class="prop-row"><span class="prop-label">Разделитель</span><div class="toggle"><div class="toggle-knob"></div></div></div>
+              </div>
+              <div class="prop-section">
+                <div class="prop-section-title">Свой CSS</div>
+                <textarea class="input" style="min-height:60px;font-family:monospace;font-size:11px;resize:vertical;" placeholder="/* CSS overrides */&#10;.chat-message {&#10;  border-left: 2px solid red;&#10;}"></textarea>
+              </div>
+            </div>
+
+            <div class="editor-preview">
+              <div class="preview-frame">
+                <div class="preview-label">Live Preview / 400x800</div>
+                <div class="preview-chat">
+                  <div class="preview-msg">
+                    <div class="p-platform" style="background:var(--twitch);"></div>
+                    <span class="p-user" style="color:#FF6B6B;">NightBot</span>
+                    <span class="p-text">Следующий стрим через 2 часа!</span>
+                  </div>
+                  <div class="preview-msg">
+                    <div class="p-platform" style="background:var(--kick);"></div>
+                    <span class="p-user" style="color:#5DADE2;">xqc</span>
+                    <span class="p-text">OMEGALUL what a play</span>
+                  </div>
+                  <div class="preview-msg">
+                    <div class="p-platform" style="background:var(--twitch);"></div>
+                    <span class="p-user" style="color:#FFD93D;">s1mple_fan</span>
+                    <span class="p-text">LET'S GOOO</span>
+                  </div>
+                  <div class="preview-msg">
+                    <div class="p-platform" style="background:var(--kick);"></div>
+                    <span class="p-user" style="color:#7BED9F;">viewer_42</span>
+                    <span class="p-text">Can someone explain the strat?</span>
+                  </div>
+                  <div class="preview-msg">
+                    <div class="p-platform" style="background:var(--twitch);"></div>
+                    <span class="p-user" style="color:var(--twitch);">shroud</span>
+                    <span class="p-text">GG! That clutch was insane</span>
+                  </div>
+                </div>
+              </div>
+              <div style="padding:8px 16px;display:flex;gap:8px;align-items:center;">
+                <span style="font-size:11px;color:var(--text-muted);flex-shrink:0;">OBS URL:</span>
+                <div style="flex:1;background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:11px;font-family:monospace;color:var(--text-sub);">http://127.0.0.1:9274/overlay</div>
+                <button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/copy.png" alt=""> Копировать</button>
+                <button class="btn btn-primary btn-sm"><img src="https://img.icons8.com/fluency/16/export.png" alt=""> Экспорт HTML</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="status-bar">
+          <div class="sb-item"><span class="sb-dot on"></span> 127.0.0.1:9274</div>
+          <div class="sb-item"><img class="sb-icon" src="https://img.icons8.com/fluency/16/monitor.png" alt="" style="filter:brightness(0)invert(55%);"> 2 клиента</div>
+          <div style="flex:1;"></div>
+          <div class="sb-item">Профиль: Default</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrow">|</div>
+
+  <!-- ============ SCREEN 4: Settings (with Diagnostics) ============ -->
+  <div class="screen-section">
+    <div class="screen-title">4. Настройки</div>
+    <div class="screen-desc">Конфигурация приложения: сервер, оверлей, хранение, горячие клавиши, интерфейс, диагностика. Сервер запускается автоматически при старте и перезапускается при изменении подключений.</div>
+
+    <div class="app-shell" style="min-height:560px;">
+      <div class="activity-bar">
+        <div class="ab-icon" title="Подключения">
+          <img src="https://img.icons8.com/fluency/24/link.png" alt="Подключения">
+        </div>
+        <div class="ab-icon" title="Чат">
+          <img src="https://img.icons8.com/fluency/24/chat.png" alt="Чат">
+        </div>
+        <div class="ab-icon" title="Редактор">
+          <img src="https://img.icons8.com/fluency/24/paint-palette.png" alt="Редактор">
+        </div>
+        <div class="ab-spacer"></div>
+        <div class="ab-icon active" title="Настройки">
+          <img src="https://img.icons8.com/fluency/24/settings.png" alt="Настройки">
+        </div>
+      </div>
+
+      <div class="main-content" style="flex:1;">
+        <div class="mc-toolbar">
+          <span style="font-size:14px;font-weight:600;">Настройки</span>
+        </div>
+        <div class="mc-body">
+          <div class="settings-grid">
+            <div class="settings-nav">
+              <div class="settings-nav-item">
+                <img src="https://img.icons8.com/fluency/16/server.png" alt=""> Сервер
+              </div>
+              <div class="settings-nav-item">
+                <img src="https://img.icons8.com/fluency/16/overlay.png" alt=""> Оверлей
+              </div>
+              <div class="settings-nav-item">
+                <img src="https://img.icons8.com/fluency/16/database.png" alt=""> Хранение
+              </div>
+              <div class="settings-nav-item">
+                <img src="https://img.icons8.com/fluency/16/keyboard.png" alt=""> Горячие клавиши
+              </div>
+              <div class="settings-nav-item">
+                <img src="https://img.icons8.com/fluency/16/paint-palette.png" alt=""> Интерфейс
+              </div>
+              <div class="settings-nav-item active">
+                <img src="https://img.icons8.com/fluency/16/stethoscope.png" alt=""> Диагностика
+              </div>
+              <div class="settings-nav-item">
+                <img src="https://img.icons8.com/fluency/16/info.png" alt=""> О программе
+              </div>
+            </div>
+            <div class="settings-body">
+              <!-- Diagnostics section -->
+              <div class="setting-group">
+                <div class="setting-group-title" style="display:flex;align-items:center;gap:8px;">
+                  <img src="https://img.icons8.com/fluency/20/stethoscope.png" alt="" style="width:20px;height:20px;"> Диагностика сервера
+                </div>
+                <div class="setting-desc" style="margin-bottom:16px;">Мониторинг локального WebSocket-сервера. Сервер запускается автоматически и перезапускается при изменении подключений.</div>
+
+                <div class="diag-stats">
+                  <div class="diag-card">
+                    <img class="diag-icon" src="https://img.icons8.com/fluency/24/monitor.png" alt="" style="filter:brightness(0)invert(55%);">
+                    <div class="diag-value" style="color:var(--accent);">2</div>
+                    <div class="diag-label">Подключённые клиенты</div>
+                  </div>
+                  <div class="diag-card">
+                    <img class="diag-icon" src="https://img.icons8.com/fluency/24/sent.png" alt="" style="filter:brightness(0)invert(55%);">
+                    <div class="diag-value">1,247</div>
+                    <div class="diag-label">Сообщений отправлено</div>
+                  </div>
+                  <div class="diag-card">
+                    <img class="diag-icon" src="https://img.icons8.com/fluency/24/timer.png" alt="" style="filter:brightness(0)invert(55%);">
+                    <div class="diag-value">4h 23m</div>
+                    <div class="diag-label">Время работы</div>
+                  </div>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:8px;">Клиенты</div>
+                  <div style="background:var(--bg-elevated);border-radius:6px;border:1px solid var(--border-subtle);overflow:hidden;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:8px 12px;border-bottom:1px solid var(--border-subtle);font-size:11px;color:var(--text-muted);">
+                      <span>ID</span><span>Подключён</span><span>Сообщений</span><span></span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:8px 12px;border-bottom:1px solid var(--border-subtle);font-size:12px;">
+                      <span>client_1</span><span style="color:var(--text-muted);">20:04</span><span>623</span>
+                      <button class="btn-icon" style="border:none;background:none;"><img src="https://img.icons8.com/fluency/16/delete-sign.png" alt="X"></button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:8px 12px;font-size:12px;">
+                      <span>client_2</span><span style="color:var(--text-muted);">20:08</span><span>624</span>
+                      <button class="btn-icon" style="border:none;background:none;"><img src="https://img.icons8.com/fluency/16/delete-sign.png" alt="X"></button>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-bottom:16px;">
+                  <button class="btn btn-primary btn-sm"><img src="https://img.icons8.com/fluency/16/test-tube.png" alt=""> Тестовое сообщение</button>
+                  <button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/stop.png" alt=""> Остановить сервер</button>
+                  <button class="btn btn-ghost btn-sm"><img src="https://img.icons8.com/fluency/16/refresh.png" alt=""> Перезапустить</button>
+                </div>
+
+                <div>
+                  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:8px;">Лог сервера</div>
+                  <div class="log-box">
+                    <div class="log-line"><span class="log-time">20:14:32</span> <span class="log-ok">[SEND]</span> <span class="log-info">client_1: message from Twitch/shroud</span></div>
+                    <div class="log-line"><span class="log-time">20:14:32</span> <span class="log-ok">[SEND]</span> <span class="log-info">client_2: message from Twitch/shroud</span></div>
+                    <div class="log-line"><span class="log-time">20:14:28</span> <span class="log-ok">[SEND]</span> <span class="log-info">client_1: message from Kick/xqc</span></div>
+                    <div class="log-line"><span class="log-time">20:13:15</span> <span class="log-ok">[CONN]</span> <span class="log-info">client_2 connected from 127.0.0.1</span></div>
+                    <div class="log-line"><span class="log-time">20:04:01</span> <span class="log-ok">[CONN]</span> <span class="log-info">client_1 connected from 127.0.0.1</span></div>
+                    <div class="log-line"><span class="log-time">20:04:00</span> <span class="log-ok">[INFO]</span> <span class="log-info">Server started on ws://127.0.0.1:9274</span></div>
+                    <div class="log-line"><span class="log-time">20:03:59</span> <span class="log-ok">[INFO]</span> <span class="log-info">Auto-start: server started with application</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="status-bar">
+          <div class="sb-item"><span class="sb-dot on"></span> 127.0.0.1:9274</div>
+          <div class="sb-item"><img class="sb-icon" src="https://img.icons8.com/fluency/16/monitor.png" alt="" style="filter:brightness(0)invert(55%);"> 2 клиента</div>
+          <div style="flex:1;"></div>
+          <div class="sb-item">DegraChat v1.0.0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Navigation Overview ============ -->
+  <div class="screen-section" style="margin-top:64px;">
+    <div class="screen-title">Навигация: 4 вкладки</div>
+    <div class="screen-desc">Activity Bar с иконками Icons8 (Fluency). Вкладка «Сервер» убрана -- сервер стартует автоматически, диагностика доступна через Настройки.</div>
+
+    <div style="background:var(--bg-main);border-radius:12px;border:1px solid var(--border-subtle);padding:32px;display:flex;gap:32px;justify-content:center;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:56px;height:56px;border-radius:12px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;border-left:3px solid var(--accent);">
+          <img src="https://img.icons8.com/fluency/32/link.png" alt="Подключения" style="filter:brightness(0) saturate(100%) invert(65%) sepia(80%) saturate(500%) hue-rotate(120deg) brightness(100%) contrast(100%);">
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--accent);">Подключения</div>
+        <div style="font-size:10px;color:var(--text-muted);text-align:center;max-width:100px;">Платформы и авторизация</div>
+      </div>
+
+      <div style="display:flex;align-items:center;color:var(--text-muted);font-size:20px;">&rarr;</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:56px;height:56px;border-radius:12px;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;">
+          <img src="https://img.icons8.com/fluency/32/chat.png" alt="Чат" style="filter:brightness(0)invert(55%);">
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-sub);">Чат</div>
+        <div style="font-size:10px;color:var(--text-muted);text-align:center;max-width:100px;">Единая лента сообщений</div>
+      </div>
+
+      <div style="display:flex;align-items:center;color:var(--text-muted);font-size:20px;">&rarr;</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:56px;height:56px;border-radius:12px;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;">
+          <img src="https://img.icons8.com/fluency/32/paint-palette.png" alt="Редактор" style="filter:brightness(0)invert(55%);">
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-sub);">Редактор</div>
+        <div style="font-size:10px;color:var(--text-muted);text-align:center;max-width:100px;">Оформление оверлея</div>
+      </div>
+
+      <div style="display:flex;align-items:center;color:var(--text-muted);font-size:20px;">&rarr;</div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div style="width:56px;height:56px;border-radius:12px;background:var(--bg-elevated);display:flex;align-items:center;justify-content:center;">
+          <img src="https://img.icons8.com/fluency/32/settings.png" alt="Настройки" style="filter:brightness(0)invert(55%);">
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-sub);">Настройки</div>
+        <div style="font-size:10px;color:var(--text-muted);text-align:center;max-width:100px;">Конфигурация + Диагностика</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

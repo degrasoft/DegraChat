@@ -1,0 +1,171 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DegraChat.App.ViewModels"
+        x:Class="DegraChat.App.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="DegraChat"
+        Width="1100" Height="750"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackground}">
+
+    <DockPanel>
+        <!-- Top toolbar -->
+        <Border DockPanel.Dock="Top" Background="#151515" Padding="12,8" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="Degra" FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="Chat" FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="16" HorizontalAlignment="Right">
+                    <!-- Server status indicator (always visible) -->
+                    <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                             Fill="{Binding IsServerRunning, Converter={x:Static BoolConverters.Not}, ConverterParameter=#FF5C5C|#00C896}" />
+                    <TextBlock Text="{Binding ServerStatusText}" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondary}" FontSize="12" />
+                    <TextBlock Text="{Binding ConnectedClients, StringFormat='{}{0} клиентов'}"
+                               VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" FontSize="12" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Main content: TabControl — 4 tabs (no Server tab) -->
+        <TabControl SelectedIndex="{Binding SelectedTabIndex}" Margin="0">
+            <!-- Connections Tab -->
+            <TabItem Header="Подключения">
+                <ContentControl Content="{Binding ConnectionViewModel}" />
+            </TabItem>
+
+            <!-- Chat Tab -->
+            <TabItem Header="Чат">
+                <DockPanel Margin="8">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                        <CheckBox Content="Авто-скролл" IsChecked="{Binding ChatViewModel.AutoScroll}" />
+                        <Button Content="Очистить" Command="{Binding ChatViewModel.ClearMessagesCommand}" />
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding ChatViewModel.Messages}"
+                             Background="#1E1E1E" BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding PlatformIcon}"
+                                               FontWeight="Bold" Width="24" TextAlignment="Center"
+                                               Foreground="{DynamicResource AccentBrush}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Timestamp}"
+                                               Foreground="#888" FontSize="11" Margin="4,0" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding DisplayName}"
+                                               Foreground="{Binding UserColor}" FontWeight="SemiBold" Margin="4,0" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Text}"
+                                               Foreground="#DDD" TextWrapping="Wrap" Margin="4,0" />
+                                    <TextBlock Grid.Column="4" Text="{Binding Channel}"
+                                               Foreground="#666" FontSize="11" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </TabItem>
+
+            <!-- Editor Tab -->
+            <TabItem Header="Редактор">
+                <ContentControl Content="{Binding EditorViewModel}" />
+            </TabItem>
+
+            <!-- Settings Tab (includes Diagnostics) -->
+            <TabItem Header="Настройки">
+                <DockPanel Margin="0">
+                    <!-- Settings navigation -->
+                    <Border DockPanel.Dock="Left" Width="200" Background="#202020"
+                            BorderBrush="#2C2C2C" BorderThickness="0,0,1,0" Padding="8,12">
+                        <StackPanel Spacing="2">
+                            <Button Content="Сервер" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
+                            <Button Content="Оверлей" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
+                            <Button Content="Хранение" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
+                            <Button Content="Горячие клавиши" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
+                            <Button Content="Интерфейс" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
+                            <Button Content="Диагностика" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Padding="8,6" Background="rgba(0,200,150,0.12)" Foreground="#00C896" />
+                            <Button Content="О программе" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Diagnostics content (default view) -->
+                    <ScrollViewer>
+                        <StackPanel Margin="20,24" Spacing="20">
+                            <TextBlock Text="Диагностика сервера" FontSize="16" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimary}" />
+
+                            <TextBlock Text="Сервер запускается автоматически при старте приложения и перезапускается при изменении подключений."
+                                       Foreground="{DynamicResource TextMuted}" FontSize="12" TextWrapping="Wrap" />
+
+                            <!-- Stats row -->
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding ConnectedClients}" FontSize="24" FontWeight="Bold"
+                                                   Foreground="#00C896" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Клиентов" FontSize="11" Foreground="#777"
+                                                   HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding MessagesSent}" FontSize="24" FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Отправлено" FontSize="11" Foreground="#777"
+                                                   HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding UptimeText}" FontSize="24" FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="Время работы" FontSize="11" Foreground="#777"
+                                                   HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Action buttons -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Тестовое сообщение" Command="{Binding SendTestMessageCommand}"
+                                        Background="#00C896" Foreground="#111" Padding="8,4" />
+                                <Button Content="Остановить" Command="{Binding StopServerCommand}"
+                                        Padding="8,4" />
+                                <Button Content="Перезапустить" Command="{Binding RestartServerCommand}"
+                                        Padding="8,4" />
+                            </StackPanel>
+
+                            <!-- Server log -->
+                            <TextBlock Text="Лог сервера" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextMuted}" />
+                            <Border Background="#151515" CornerRadius="8" MaxHeight="200">
+                                <ListBox ItemsSource="{Binding ServerLog}" Background="Transparent"
+                                         BorderThickness="0" Padding="4">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock FontFamily="Cascadia Code, Fira Code, Consolas" FontSize="11">
+                                                <Run Text="{Binding Timestamp}" Foreground="#777" />
+                                                <Run Text=" [" /><Run Text="{Binding Level}" Foreground="{Binding LevelColor}" /><Run Text="] " />
+                                                <Run Text="{Binding Message}" Foreground="#B0B0B0" />
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

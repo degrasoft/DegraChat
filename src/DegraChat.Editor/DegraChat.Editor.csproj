@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DegraChat.Editor</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DegraChat.Core\DegraChat.Core.csproj" />
+    <ProjectReference Include="..\DegraChat.Overlay\DegraChat.Overlay.Engine\DegraChat.Overlay.Engine.csproj" />
+    <ProjectReference Include="..\DegraChat.Overlay\DegraChat.Overlay.Assets\DegraChat.Overlay.Assets.csproj" />
+    <ProjectReference Include="..\DegraChat.Storage\DegraChat.Storage.csproj" />
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,42 @@
+## .NET
+bin/
+obj/
+publish/
+*.user
+*.suo
+*.cache
+*.log
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*~
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+
+## NuGet
+**/packages/*
+*.nupkg
+**/[Pp]ackages/**
+nuget.exe
+
+## Avalonia
+*.avalonia.db
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Secrets (NEVER commit tokens)
+**/secrets.json
+**/appsettings.local.json

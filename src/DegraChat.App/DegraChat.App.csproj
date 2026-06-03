@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DegraChat.App</RootNamespace>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DegraChat.Core\DegraChat.Core.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat\DegraChat.Chat.Abstractions\DegraChat.Chat.Abstractions.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat\DegraChat.Chat.Twitch\DegraChat.Chat.Twitch.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat\DegraChat.Chat.GoodGame\DegraChat.Chat.GoodGame.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat\DegraChat.Chat.Kick\DegraChat.Chat.Kick.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat\DegraChat.Chat.VKPlay\DegraChat.Chat.VKPlay.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat\DegraChat.Chat.YouTube\DegraChat.Chat.YouTube.csproj" />
+    <ProjectReference Include="..\DegraChat.Server\DegraChat.Server.csproj" />
+    <ProjectReference Include="..\DegraChat.Overlay\DegraChat.Overlay.Engine\DegraChat.Overlay.Engine.csproj" />
+    <ProjectReference Include="..\DegraChat.Overlay\DegraChat.Overlay.Assets\DegraChat.Overlay.Assets.csproj" />
+    <ProjectReference Include="..\DegraChat.Editor\DegraChat.Editor.csproj" />
+    <ProjectReference Include="..\DegraChat.Storage\DegraChat.Storage.csproj" />
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="**\*.axaml" />
+  </ItemGroup>
+</Project>

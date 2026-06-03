@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DegraChat.Editor.ViewModels"
+             x:Class="DegraChat.Editor.Views.ConnectionView"
+             x:DataType="vm:ConnectionViewModel">
+
+    <ScrollViewer Margin="16">
+        <ItemsControl ItemsSource="{Binding Connections}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ConnectionItemViewModel">
+                    <Border Background="#2D2D2D" CornerRadius="8" Padding="16" Margin="0,0,0,8">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <!-- Platform icon and name -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" MinWidth="200">
+                                <Border Width="40" Height="40" CornerRadius="20" Background="#444">
+                                    <TextBlock Text="{Binding PlatformDisplayName[0]}" 
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               FontSize="18" FontWeight="Bold" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding PlatformDisplayName}" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding State}" FontSize="12" Foreground="#888" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Connection fields -->
+                            <StackPanel Grid.Column="1" Spacing="8" Margin="16,0">
+                                <TextBox Text="{Binding ChannelName}" Watermark="Channel name" MinWidth="200" />
+                                <TextBox Text="{Binding OAuthToken}" Watermark="OAuth token (optional)" 
+                                         PasswordChar="*" MinWidth="200" IsVisible="{Binding HasSavedConfig, Converter={x:Static BoolConverters.Not}}" />
+                                <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" FontSize="12" 
+                                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                            </StackPanel>
+
+                            <!-- Action buttons -->
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="4">
+                                <Button Content="Connect" Command="{Binding ConnectCommand}"
+                                        IsVisible="{Binding State, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static ConnectionState.Disconnected}}" />
+                                <Button Content="Disconnect" Command="{Binding DisconnectCommand}"
+                                        IsVisible="{Binding State, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static ConnectionState.Disconnected}}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>

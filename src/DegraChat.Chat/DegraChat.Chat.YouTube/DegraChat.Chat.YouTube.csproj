@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DegraChat.Chat.YouTube</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\DegraChat.Core\DegraChat.Core.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat.Abstractions\DegraChat.Chat.Abstractions.csproj" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.68.0.3629" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
+  </ItemGroup>
+</Project>

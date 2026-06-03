@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatOverlay Studio - {{ style.profileName }}</title>
+    <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+    <div id="chat-container"
+         data-max-messages="{{ style.max_messages }}"
+         data-display-time="{{ style.message_display_time_ms }}"
+         data-animation-duration="{{ style.animation_duration_ms }}"
+         data-direction="{{ style.message_direction }}">
+    </div>
+    <script>
+        window.COS_CONFIG = {
+            wsUrl: '{{ ws_url }}',
+            maxMessages: {{ style.max_messages }},
+            displayTimeMs: {{ style.message_display_time_ms }},
+            animationDurationMs: {{ style.animation_duration_ms }},
+            showPlatformIcon: {{ style.show_platform_icon | to_lower }},
+            showSeparator: {{ style.show_separator | to_lower }}
+        };
+    </script>
+    <script src="overlay.js"></script>
+</body>
+</html>

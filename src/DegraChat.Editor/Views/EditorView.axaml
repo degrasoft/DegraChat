@@ -1,0 +1,179 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DegraChat.Editor.ViewModels"
+             x:Class="DegraChat.Editor.Views.EditorView"
+             x:DataType="vm:EditorViewModel">
+
+    <DockPanel Margin="16">
+        <!-- Profile selector -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+            <TextBlock Text="Profile:" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding SavedProfiles}" SelectedItem="{Binding CurrentStyle}"
+                      DisplayMemberBinding="{Binding ProfileName}" MinWidth="200" />
+            <Button Content="Save" Command="{Binding SaveProfileCommand}" />
+            <TextBox Text="{Binding NewProfileName}" MinWidth="150" Watermark="New profile name" />
+            <Button Content="New" Command="{Binding CreateNewProfileCommand}" />
+        </StackPanel>
+
+        <!-- Status bar -->
+        <Border DockPanel.Dock="Bottom" Background="#1E1E1E" Padding="8,4" Margin="0,12,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="#999" FontSize="12" />
+        </Border>
+
+        <Grid ColumnDefinitions="300,*,400">
+            <!-- Style properties panel -->
+            <ScrollViewer Grid.Column="0" Margin="0,0,8,0">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Style Properties" FontSize="16" FontWeight="Bold" />
+
+                    <!-- Background -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Background" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Color:" VerticalAlignment="Center" />
+                            <TextBox Text="{Binding CurrentStyle.BackgroundColor}" MinWidth="80" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Opacity:" VerticalAlignment="Center" />
+                            <Slider Minimum="0" Maximum="1" Value="{Binding CurrentStyle.BackgroundOpacity}" MinWidth="150" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Radius:" VerticalAlignment="Center" />
+                            <Slider Minimum="0" Maximum="30" Value="{Binding CurrentStyle.BorderRadius}" MinWidth="150" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Message Font -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Message Font" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Family:" VerticalAlignment="Center" />
+                            <TextBox Text="{Binding CurrentStyle.MessageFontFamily}" MinWidth="120" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Size:" VerticalAlignment="Center" />
+                            <Slider Minimum="10" Maximum="32" Value="{Binding CurrentStyle.MessageFontSize}" MinWidth="150" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Color:" VerticalAlignment="Center" />
+                            <TextBox Text="{Binding CurrentStyle.MessageColor}" MinWidth="80" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Username Font -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Username Font" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Size:" VerticalAlignment="Center" />
+                            <Slider Minimum="10" Maximum="28" Value="{Binding CurrentStyle.UsernameFontSize}" MinWidth="150" />
+                        </StackPanel>
+                        <CheckBox Content="Bold" IsChecked="{Binding CurrentStyle.UsernameBold}" />
+                    </StackPanel>
+
+                    <!-- Badges & Emotes -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Badges &amp; Emotes" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Badge size:" VerticalAlignment="Center" />
+                            <Slider Minimum="12" Maximum="32" Value="{Binding CurrentStyle.BadgeSize}" MinWidth="150" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Emote size:" VerticalAlignment="Center" />
+                            <Slider Minimum="16" Maximum="56" Value="{Binding CurrentStyle.EmoteSize}" MinWidth="150" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Layout -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Layout" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Direction:" VerticalAlignment="Center" />
+                            <ComboBox ItemsSource="{Binding DirectionOptions}" SelectedItem="{Binding CurrentStyle.MessageDirection}" MinWidth="120" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Max messages:" VerticalAlignment="Center" />
+                            <NumericUpDown Minimum="5" Maximum="100" Value="{Binding CurrentStyle.MaxMessages}" />
+                        </StackPanel>
+                        <CheckBox Content="Show platform icon" IsChecked="{Binding CurrentStyle.ShowPlatformIcon}" />
+                        <CheckBox Content="Show separator" IsChecked="{Binding CurrentStyle.ShowSeparator}" />
+                        <CheckBox Content="Show shadow" IsChecked="{Binding CurrentStyle.ShowShadow}" />
+                    </StackPanel>
+
+                    <!-- Animation -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Animation" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="In:" VerticalAlignment="Center" />
+                            <ComboBox ItemsSource="{Binding AnimationOptions}" SelectedItem="{Binding CurrentStyle.AnimationIn}" MinWidth="100" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Out:" VerticalAlignment="Center" />
+                            <ComboBox ItemsSource="{Binding AnimationOutOptions}" SelectedItem="{Binding CurrentStyle.AnimationOut}" MinWidth="100" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Duration:" VerticalAlignment="Center" />
+                            <Slider Minimum="100" Maximum="1000" Value="{Binding CurrentStyle.AnimationDurationMs}" MinWidth="150" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Auto-hide (ms, 0=off):" VerticalAlignment="Center" />
+                            <NumericUpDown Minimum="0" Maximum="60000" Value="{Binding CurrentStyle.MessageDisplayTimeMs}" Increment="1000" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Custom CSS -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Custom CSS" FontWeight="SemiBold" />
+                        <TextBox Text="{Binding CurrentStyle.CustomCss}"
+                                 AcceptsReturn="True" MinHeight="100"
+                                 Watermark="/* Your custom CSS overrides */" />
+                    </StackPanel>
+
+                    <Button Content="Apply Changes" Command="{Binding UpdatePreviewCommand}" HorizontalAlignment="Stretch" />
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Preview area -->
+            <Border Grid.Column="1" Background="#333" CornerRadius="8" Margin="8,0">
+                <Grid>
+                    <TextBlock Text="Live Preview" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="8" Foreground="#888" />
+                    <!-- WebView would go here for live preview -->
+                    <!-- For now, a placeholder -->
+                    <Border Background="#111" CornerRadius="4" Margin="16,32,16,16">
+                        <TextBlock Text="Preview will be rendered here&#x0a;(requires WebView component)"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Foreground="#666" TextAlignment="Center" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Export & info panel -->
+            <StackPanel Grid.Column="2" Spacing="12" Margin="8,0,0,0">
+                <TextBlock Text="Overlay Setup" FontSize="16" FontWeight="Bold" />
+
+                <Border Background="#2D2D2D" CornerRadius="8" Padding="12">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="OBS Browser Source Setup" FontWeight="SemiBold" />
+                        <TextBlock Text="1. Add a Browser Source in OBS" TextWrapping="Wrap" Foreground="#CCC" />
+                        <TextBlock Text="2. Set the URL to the overlay address shown below" TextWrapping="Wrap" Foreground="#CCC" />
+                        <TextBlock Text="3. Set width: 400, height: 800 (or as needed)" TextWrapping="Wrap" Foreground="#CCC" />
+                        <TextBlock Text="4. Check 'Shutdown source when not visible'" TextWrapping="Wrap" Foreground="#CCC" />
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#2D2D2D" CornerRadius="8" Padding="12">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Overlay URL" FontWeight="SemiBold" />
+                        <TextBox Text="http://127.0.0.1:9274/overlay" IsReadOnly="True" />
+                        <TextBlock Text="WebSocket URL" FontWeight="SemiBold" Margin="0,8,0,0" />
+                        <TextBox Text="ws://127.0.0.1:9274/ws" IsReadOnly="True" />
+                    </StackPanel>
+                </Border>
+
+                <Button Content="Export Overlay HTML" Command="{Binding ExportOverlayCommand}"
+                        CommandParameter="/overlay.html" HorizontalAlignment="Stretch" />
+
+                <Button Content="Generate Test Message" HorizontalAlignment="Stretch" />
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>
