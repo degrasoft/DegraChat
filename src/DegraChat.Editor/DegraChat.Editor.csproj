@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\DegraChat.Core\DegraChat.Core.csproj" />
+    <ProjectReference Include="..\DegraChat.Chat\DegraChat.Chat.Abstractions\DegraChat.Chat.Abstractions.csproj" />
     <ProjectReference Include="..\DegraChat.Overlay\DegraChat.Overlay.Engine\DegraChat.Overlay.Engine.csproj" />
     <ProjectReference Include="..\DegraChat.Overlay\DegraChat.Overlay.Assets\DegraChat.Overlay.Assets.csproj" />
     <ProjectReference Include="..\DegraChat.Storage\DegraChat.Storage.csproj" />

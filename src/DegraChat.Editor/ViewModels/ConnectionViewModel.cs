@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DegraChat.Chat.Abstractions;
+using DegraChat.Core.Events;
 using DegraChat.Core.Interfaces;
 using DegraChat.Core.Models;
 using DegraChat.Storage;

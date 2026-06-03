@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\DegraChat.Core\DegraChat.Core.csproj" />
-    <PackageReference Include="Scriban" Version="5.12.0" />
+    <PackageReference Include="Scriban" Version="5.12.1" />
     <PackageReference Include="Serilog" Version="4.2.0" />
   </ItemGroup>
 </Project>

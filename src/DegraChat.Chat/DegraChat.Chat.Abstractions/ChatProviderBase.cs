@@ -104,7 +104,7 @@ public abstract class ChatProviderBase : IChatProvider
         MessageReceived?.Invoke(this, new ChatMessageEventArgs(message));
     }
 
-    private async Task ReconnectLoopAsync(ConnectionConfig config)
+    protected async Task ReconnectLoopAsync(ConnectionConfig config)
     {
         while (_reconnectAttempts < config.MaxReconnectAttempts && ConnectionCts?.IsCancellationRequested == false)
         {

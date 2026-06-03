@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DegraChat.Chat.Abstractions;
@@ -34,12 +33,7 @@ public class TwitchChatProvider : ChatProviderBase
             config.ChannelName,
             config.OAuthToken ?? throw new InvalidOperationException("Twitch OAuth token is required"));
 
-        var clientOptions = new ClientOptions
-        {
-            MessagesAllowedInPeriod = 750,
-            ThrottlingPeriod = TimeSpan.FromSeconds(30)
-        };
-
+        var clientOptions = new ClientOptions();
         var customClient = new WebSocketClient(clientOptions);
         _client = new TwitchClient(customClient);
         _client.Initialize(credentials, _channelName);
@@ -137,16 +131,13 @@ public class TwitchChatProvider : ChatProviderBase
         Logger.Debug("Twitch: User {Username} left #{Channel}", e.Username, e.Channel);
     }
 
-    private void OnDisconnected(object? sender, OnDisconnectedArgs e)
+    private void OnDisconnected(object? sender, OnDisconnectedEventArgs e)
     {
         Logger.Warning("Twitch: Disconnected");
         if (State == ConnectionState.Connected)
         {
             State = ConnectionState.Reconnecting;
-            if (CurrentConfig != null)
-            {
-                _ = ReconnectLoopAsync(CurrentConfig);
-            }
+            // Reconnection is handled by ChatProviderBase.ReconnectLoopAsync
         }
     }
 
@@ -167,7 +158,6 @@ public class TwitchChatProvider : ChatProviderBase
         var badges = new List<string>();
         foreach (var badge in chatMessage.Badges)
         {
-            // Twitch badge URLs follow a known pattern
             badges.Add($"https://static-cdn.jtvnw.net/chat-badges/v1/{badge.Key}/{badge.Value}/3");
         }
         return badges.ToArray();
