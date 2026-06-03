@@ -25,6 +25,20 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedTabIndex;
 
+    // Derived tab visibility properties for Activity Bar
+    public bool IsConnectionsTab => SelectedTabIndex == 0;
+    public bool IsChatTab => SelectedTabIndex == 1;
+    public bool IsEditorTab => SelectedTabIndex == 2;
+    public bool IsSettingsTab => SelectedTabIndex == 3;
+
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        OnPropertyChanged(nameof(IsConnectionsTab));
+        OnPropertyChanged(nameof(IsChatTab));
+        OnPropertyChanged(nameof(IsEditorTab));
+        OnPropertyChanged(nameof(IsSettingsTab));
+    }
+
     [ObservableProperty]
     private bool _isServerRunning;
 

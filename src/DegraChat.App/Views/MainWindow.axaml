@@ -1,171 +1,572 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:DegraChat.App.ViewModels"
+        xmlns:models="using:DegraChat.Core.Models"
         x:Class="DegraChat.App.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="DegraChat"
         Width="1100" Height="750"
         MinWidth="900" MinHeight="600"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource AppBackground}">
+        Background="#151515">
 
     <DockPanel>
-        <!-- Top toolbar -->
-        <Border DockPanel.Dock="Top" Background="#151515" Padding="12,8" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+        <!-- ========== STATUS BAR (bottom) ========== -->
+        <Border DockPanel.Dock="Bottom" Background="#151515"
+                BorderBrush="#2C2C2C" BorderThickness="0,1,0,0"
+                Padding="16,4" Height="24">
             <DockPanel>
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <TextBlock Text="Degra" FontSize="18" FontWeight="Bold"
-                               Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
-                    <TextBlock Text="Chat" FontSize="18" FontWeight="Bold"
-                               Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" Fill="#00C896"
+                             IsVisible="{Binding IsServerRunning}" />
+                    <Ellipse Width="8" Height="8" Fill="#FF5C5C"
+                             IsVisible="{Binding IsServerRunning, Converter={x:Static BoolConverters.Not}}" />
+                    <TextBlock Text="{Binding ServerStatusText}" FontSize="11" Foreground="#777" />
                 </StackPanel>
 
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="16" HorizontalAlignment="Right">
-                    <!-- Server status indicator (always visible) -->
-                    <Ellipse Width="8" Height="8" VerticalAlignment="Center"
-                             Fill="{Binding IsServerRunning, Converter={x:Static BoolConverters.Not}, ConverterParameter=#FF5C5C|#00C896}" />
-                    <TextBlock Text="{Binding ServerStatusText}" VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextSecondary}" FontSize="12" />
-                    <TextBlock Text="{Binding ConnectedClients, StringFormat='{}{0} клиентов'}"
-                               VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" FontSize="12" />
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding ConnectedClients, StringFormat='{}{0} клиентов'}" FontSize="11" Foreground="#777" />
                 </StackPanel>
+
+                <TextBlock DockPanel.Dock="Right" Text="2 / 5 платформ" FontSize="11" Foreground="#777"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" />
             </DockPanel>
         </Border>
 
-        <!-- Main content: TabControl — 4 tabs (no Server tab) -->
-        <TabControl SelectedIndex="{Binding SelectedTabIndex}" Margin="0">
-            <!-- Connections Tab -->
-            <TabItem Header="Подключения">
-                <ContentControl Content="{Binding ConnectionViewModel}" />
-            </TabItem>
+        <!-- ========== MAIN AREA ========== -->
+        <DockPanel>
+            <!-- ===== ACTIVITY BAR (far left, 52px) ===== -->
+            <Border DockPanel.Dock="Left" Width="52" Background="#151515"
+                    BorderBrush="#2C2C2C" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <!-- Top icons -->
+                    <StackPanel DockPanel.Dock="Top" Spacing="2" HorizontalAlignment="Center" Margin="0,12,0,0">
 
-            <!-- Chat Tab -->
-            <TabItem Header="Чат">
-                <DockPanel Margin="8">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
-                        <CheckBox Content="Авто-скролл" IsChecked="{Binding ChatViewModel.AutoScroll}" />
-                        <Button Content="Очистить" Command="{Binding ChatViewModel.ClearMessagesCommand}" />
+                        <!-- Connections -->
+                        <Border Width="38" Height="38" CornerRadius="5" Margin="0,2"
+                                Background="#00C89622" IsVisible="{Binding IsConnectionsTab}"
+                                PointerPressed="OnActivityTabClick" Tag="0">
+                            <ToolTip.Tip>Подключения</ToolTip.Tip>
+                            <Grid>
+                                <Border Width="3" CornerRadius="0,3,3,0" Background="#00C896"
+                                        HorizontalAlignment="Left" Margin="-6,8,0,8" />
+                                <TextBlock Text="C" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           FontSize="16" FontWeight="Bold" Foreground="#00C896" />
+                            </Grid>
+                        </Border>
+                        <Border Width="38" Height="38" CornerRadius="5" Margin="0,2"
+                                Background="Transparent" IsVisible="{Binding IsConnectionsTab, Converter={x:Static BoolConverters.Not}}"
+                                PointerPressed="OnActivityTabClick" Tag="0">
+                            <ToolTip.Tip>Подключения</ToolTip.Tip>
+                            <TextBlock Text="C" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       FontSize="16" FontWeight="Bold" Foreground="#888" />
+                        </Border>
+
+                        <!-- Chat -->
+                        <Border Width="38" Height="38" CornerRadius="5" Margin="0,2"
+                                Background="#00C89622" IsVisible="{Binding IsChatTab}"
+                                PointerPressed="OnActivityTabClick" Tag="1">
+                            <ToolTip.Tip>Чат</ToolTip.Tip>
+                            <Grid>
+                                <Border Width="3" CornerRadius="0,3,3,0" Background="#00C896"
+                                        HorizontalAlignment="Left" Margin="-6,8,0,8" />
+                                <TextBlock Text="Ch" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           FontSize="14" FontWeight="Bold" Foreground="#00C896" />
+                            </Grid>
+                        </Border>
+                        <Border Width="38" Height="38" CornerRadius="5" Margin="0,2"
+                                Background="Transparent" IsVisible="{Binding IsChatTab, Converter={x:Static BoolConverters.Not}}"
+                                PointerPressed="OnActivityTabClick" Tag="1">
+                            <ToolTip.Tip>Чат</ToolTip.Tip>
+                            <TextBlock Text="Ch" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       FontSize="14" FontWeight="Bold" Foreground="#888" />
+                        </Border>
+
+                        <!-- Editor -->
+                        <Border Width="38" Height="38" CornerRadius="5" Margin="0,2"
+                                Background="#00C89622" IsVisible="{Binding IsEditorTab}"
+                                PointerPressed="OnActivityTabClick" Tag="2">
+                            <ToolTip.Tip>Редактор</ToolTip.Tip>
+                            <Grid>
+                                <Border Width="3" CornerRadius="0,3,3,0" Background="#00C896"
+                                        HorizontalAlignment="Left" Margin="-6,8,0,8" />
+                                <TextBlock Text="E" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           FontSize="16" FontWeight="Bold" Foreground="#00C896" />
+                            </Grid>
+                        </Border>
+                        <Border Width="38" Height="38" CornerRadius="5" Margin="0,2"
+                                Background="Transparent" IsVisible="{Binding IsEditorTab, Converter={x:Static BoolConverters.Not}}"
+                                PointerPressed="OnActivityTabClick" Tag="2">
+                            <ToolTip.Tip>Редактор</ToolTip.Tip>
+                            <TextBlock Text="E" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       FontSize="16" FontWeight="Bold" Foreground="#888" />
+                        </Border>
                     </StackPanel>
-                    <ListBox ItemsSource="{Binding ChatViewModel.Messages}"
-                             Background="#1E1E1E" BorderThickness="0">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
-                                    <TextBlock Grid.Column="0" Text="{Binding PlatformIcon}"
-                                               FontWeight="Bold" Width="24" TextAlignment="Center"
-                                               Foreground="{DynamicResource AccentBrush}" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Timestamp}"
-                                               Foreground="#888" FontSize="11" Margin="4,0" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="2" Text="{Binding DisplayName}"
-                                               Foreground="{Binding UserColor}" FontWeight="SemiBold" Margin="4,0" />
-                                    <TextBlock Grid.Column="3" Text="{Binding Text}"
-                                               Foreground="#DDD" TextWrapping="Wrap" Margin="4,0" />
-                                    <TextBlock Grid.Column="4" Text="{Binding Channel}"
-                                               Foreground="#666" FontSize="11" VerticalAlignment="Center" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+
+                    <!-- Bottom: Settings -->
+                    <StackPanel DockPanel.Dock="Bottom" Spacing="2" HorizontalAlignment="Center" Margin="0,0,0,12">
+                        <Border Width="38" Height="38" CornerRadius="5" Margin="0,2"
+                                Background="#00C89622" IsVisible="{Binding IsSettingsTab}"
+                                PointerPressed="OnActivityTabClick" Tag="3">
+                            <ToolTip.Tip>Настройки</ToolTip.Tip>
+                            <Grid>
+                                <Border Width="3" CornerRadius="0,3,3,0" Background="#00C896"
+                                        HorizontalAlignment="Left" Margin="-6,8,0,8" />
+                                <TextBlock Text="S" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           FontSize="16" FontWeight="Bold" Foreground="#00C896" />
+                            </Grid>
+                        </Border>
+                        <Border Width="38" Height="38" CornerRadius="5" Margin="0,2"
+                                Background="Transparent" IsVisible="{Binding IsSettingsTab, Converter={x:Static BoolConverters.Not}}"
+                                PointerPressed="OnActivityTabClick" Tag="3">
+                            <ToolTip.Tip>Настройки</ToolTip.Tip>
+                            <TextBlock Text="S" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       FontSize="16" FontWeight="Bold" Foreground="#888" />
+                        </Border>
+                    </StackPanel>
+
+                    <Border />
                 </DockPanel>
-            </TabItem>
+            </Border>
 
-            <!-- Editor Tab -->
-            <TabItem Header="Редактор">
-                <ContentControl Content="{Binding EditorViewModel}" />
-            </TabItem>
+            <!-- ===== CONTENT AREA ===== -->
+            <DockPanel>
 
-            <!-- Settings Tab (includes Diagnostics) -->
-            <TabItem Header="Настройки">
-                <DockPanel Margin="0">
-                    <!-- Settings navigation -->
-                    <Border DockPanel.Dock="Left" Width="200" Background="#202020"
-                            BorderBrush="#2C2C2C" BorderThickness="0,0,1,0" Padding="8,12">
-                        <StackPanel Spacing="2">
-                            <Button Content="Сервер" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
-                            <Button Content="Оверлей" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
-                            <Button Content="Хранение" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
-                            <Button Content="Горячие клавиши" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
-                            <Button Content="Интерфейс" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
-                            <Button Content="Диагностика" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                    Padding="8,6" Background="rgba(0,200,150,0.12)" Foreground="#00C896" />
-                            <Button Content="О программе" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                    Padding="8,6" Background="Transparent" Foreground="#B0B0B0" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Diagnostics content (default view) -->
-                    <ScrollViewer>
-                        <StackPanel Margin="20,24" Spacing="20">
-                            <TextBlock Text="Диагностика сервера" FontSize="16" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextPrimary}" />
-
-                            <TextBlock Text="Сервер запускается автоматически при старте приложения и перезапускается при изменении подключений."
-                                       Foreground="{DynamicResource TextMuted}" FontSize="12" TextWrapping="Wrap" />
-
-                            <!-- Stats row -->
-                            <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding ConnectedClients}" FontSize="24" FontWeight="Bold"
-                                                   Foreground="#00C896" HorizontalAlignment="Center" />
-                                        <TextBlock Text="Клиентов" FontSize="11" Foreground="#777"
-                                                   HorizontalAlignment="Center" />
-                                    </StackPanel>
+                <!-- ======== CONNECTIONS VIEW ======== -->
+                <Panel IsVisible="{Binding IsConnectionsTab}">
+                    <DockPanel>
+                        <!-- Side Panel: Platform statuses -->
+                        <Border DockPanel.Dock="Left" Width="240" Background="#202020"
+                                BorderBrush="#2C2C2C" BorderThickness="0,0,1,0">
+                            <DockPanel>
+                                <Border DockPanel.Dock="Top" Padding="12,16" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                    <TextBlock Text="ПЛАТФОРМЫ" FontSize="11" FontWeight="Bold" Foreground="#777" />
                                 </Border>
-                                <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding MessagesSent}" FontSize="24" FontWeight="Bold"
-                                                   Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Center" />
-                                        <TextBlock Text="Отправлено" FontSize="11" Foreground="#777"
-                                                   HorizontalAlignment="Center" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140">
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding UptimeText}" FontSize="24" FontWeight="Bold"
-                                                   Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Center" />
-                                        <TextBlock Text="Время работы" FontSize="11" Foreground="#777"
-                                                   HorizontalAlignment="Center" />
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
+                                <ScrollViewer>
+                                    <ItemsControl ItemsSource="{Binding ConnectionViewModel.Connections}" Margin="8">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#2A2A2A" CornerRadius="6" Padding="10" Margin="0,0,0,6"
+                                                        BorderBrush="#2C2C2C" BorderThickness="1">
+                                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                                        <TextBlock Text="{Binding PlatformDisplayName[0]}" FontSize="14" FontWeight="Bold"
+                                                                   Foreground="#F4F4F4" Width="24" VerticalAlignment="Center" />
+                                                        <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding PlatformDisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="#F4F4F4" />
+                                                            <TextBlock Text="{Binding ChannelName}" FontSize="10" Foreground="#777" />
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="2" Text="{Binding State}" FontSize="10" FontWeight="SemiBold"
+                                                                   Foreground="#00C896" VerticalAlignment="Center" />
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
 
-                            <!-- Action buttons -->
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Button Content="Тестовое сообщение" Command="{Binding SendTestMessageCommand}"
-                                        Background="#00C896" Foreground="#111" Padding="8,4" />
-                                <Button Content="Остановить" Command="{Binding StopServerCommand}"
-                                        Padding="8,4" />
-                                <Button Content="Перезапустить" Command="{Binding RestartServerCommand}"
-                                        Padding="8,4" />
-                            </StackPanel>
-
-                            <!-- Server log -->
-                            <TextBlock Text="Лог сервера" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextMuted}" />
-                            <Border Background="#151515" CornerRadius="8" MaxHeight="200">
-                                <ListBox ItemsSource="{Binding ServerLog}" Background="Transparent"
-                                         BorderThickness="0" Padding="4">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock FontFamily="Cascadia Code, Fira Code, Consolas" FontSize="11">
-                                                <Run Text="{Binding Timestamp}" Foreground="#777" />
-                                                <Run Text=" [" /><Run Text="{Binding Level}" Foreground="{Binding LevelColor}" /><Run Text="] " />
-                                                <Run Text="{Binding Message}" Foreground="#B0B0B0" />
-                                            </TextBlock>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
+                        <!-- Main: Connection cards -->
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Background="#202020" Padding="16,8"
+                                    BorderBrush="#2C2C2C" BorderThickness="0,0,0,1" MinHeight="44">
+                                <DockPanel>
+                                    <TextBlock Text="Подключения" FontSize="14" FontWeight="SemiBold" Foreground="#F4F4F4" VerticalAlignment="Center" />
+                                    <Button DockPanel.Dock="Right" Content="Добавить" Background="#00C896" Foreground="#111"
+                                            Padding="10,4" CornerRadius="5" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                                </DockPanel>
                             </Border>
-                        </StackPanel>
-                    </ScrollViewer>
-                </DockPanel>
-            </TabItem>
-        </TabControl>
+
+                            <ScrollViewer>
+                                <ItemsControl ItemsSource="{Binding ConnectionViewModel.Connections}" Margin="16">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#2A2A2A" CornerRadius="8" Padding="14" Margin="0,0,0,8"
+                                                    BorderBrush="#2C2C2C" BorderThickness="1">
+                                                <Grid ColumnDefinitions="40,*,Auto">
+                                                    <Border Width="36" Height="36" CornerRadius="8" Background="#444" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding PlatformDisplayName[0]}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   FontSize="16" FontWeight="Bold" Foreground="#F4F4F4" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock Text="{Binding PlatformDisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="#F4F4F4" />
+                                                            <Border CornerRadius="10" Padding="8,2" Background="#00C89620">
+                                                                <TextBlock Text="{Binding State}" FontSize="10" FontWeight="SemiBold" Foreground="#00C896" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0"
+                                                                    IsVisible="{Binding HasSavedConfig, Converter={x:Static BoolConverters.Not}}">
+                                                            <TextBox Text="{Binding ChannelName}" Watermark="Название канала" MinWidth="160" FontSize="12" />
+                                                            <TextBox Text="{Binding OAuthToken}" Watermark="OAuth token" PasswordChar="*" MinWidth="180" FontSize="12" />
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#FF5C5C" FontSize="12"
+                                                                   IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="4">
+                                                        <Button Content="Подключить" Command="{Binding ConnectCommand}"
+                                                                IsVisible="{Binding State, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:ConnectionState.Disconnected}}"
+                                                                Background="#00C896" Foreground="#111" Padding="10,4" CornerRadius="5" FontSize="12" FontWeight="SemiBold" />
+                                                        <Button Content="Отключить" Command="{Binding DisconnectCommand}"
+                                                                IsVisible="{Binding State, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static models:ConnectionState.Disconnected}}"
+                                                                Padding="10,4" CornerRadius="5" FontSize="12" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </DockPanel>
+                </Panel>
+
+                <!-- ======== CHAT VIEW ======== -->
+                <Panel IsVisible="{Binding IsChatTab}">
+                    <DockPanel>
+                        <!-- Side Panel: Filters -->
+                        <Border DockPanel.Dock="Left" Width="240" Background="#202020"
+                                BorderBrush="#2C2C2C" BorderThickness="0,0,1,0">
+                            <DockPanel>
+                                <Border DockPanel.Dock="Top" Padding="12,16" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                    <TextBlock Text="ФИЛЬТРЫ" FontSize="11" FontWeight="Bold" Foreground="#777" />
+                                </Border>
+                                <ScrollViewer>
+                                    <StackPanel Margin="12" Spacing="16">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="ПЛАТФОРМЫ" FontSize="11" FontWeight="SemiBold" Foreground="#777" />
+                                            <CheckBox Content="Twitch" IsChecked="True" Foreground="#B0B0B0" FontSize="12" />
+                                            <CheckBox Content="GoodGame" Foreground="#B0B0B0" FontSize="12" />
+                                            <CheckBox Content="Kick" IsChecked="True" Foreground="#B0B0B0" FontSize="12" />
+                                            <CheckBox Content="VKPlay" Foreground="#B0B0B0" FontSize="12" />
+                                            <CheckBox Content="YouTube" Foreground="#B0B0B0" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="ТИП" FontSize="11" FontWeight="SemiBold" Foreground="#777" />
+                                            <CheckBox Content="Сообщения" IsChecked="True" Foreground="#B0B0B0" FontSize="12" />
+                                            <CheckBox Content="Системные" Foreground="#B0B0B0" FontSize="12" />
+                                            <CheckBox Content="Выделенные" Foreground="#B0B0B0" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="ПОИСК" FontSize="11" FontWeight="SemiBold" Foreground="#777" />
+                                            <TextBox Watermark="Поиск по нику или тексту..." Text="{Binding ChatViewModel.FilterText}" FontSize="12" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Main: Chat messages -->
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Background="#202020" Padding="16,8"
+                                    BorderBrush="#2C2C2C" BorderThickness="0,0,0,1" MinHeight="44">
+                                <DockPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="Чат" FontSize="14" FontWeight="SemiBold" Foreground="#F4F4F4" />
+                                        <TextBlock Text="{Binding ChatViewModel.Messages.Count, StringFormat='{}{0} сообщений'}"
+                                                   FontSize="11" Foreground="#777" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                        <Border CornerRadius="12" Padding="8,3" BorderBrush="#3A3A3A" BorderThickness="1">
+                                            <TextBlock Text="Все" FontSize="11" FontWeight="SemiBold" Foreground="#00C896" />
+                                        </Border>
+                                        <Border CornerRadius="12" Padding="8,3" BorderBrush="#3A3A3A" BorderThickness="1">
+                                            <TextBlock Text="Twitch" FontSize="11" Foreground="#B0B0B0" />
+                                        </Border>
+                                        <Border CornerRadius="12" Padding="8,3" BorderBrush="#3A3A3A" BorderThickness="1">
+                                            <TextBlock Text="Kick" FontSize="11" Foreground="#B0B0B0" />
+                                        </Border>
+                                        <Button Content="Очистить" Command="{Binding ChatViewModel.ClearMessagesCommand}"
+                                                Padding="6,3" CornerRadius="5" FontSize="11" Foreground="#B0B0B0" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+
+                            <ScrollViewer>
+                                <ItemsControl ItemsSource="{Binding ChatViewModel.Messages}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="44,Auto,*" Padding="6,8"
+                                                  BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                                <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="10" Foreground="#777" VerticalAlignment="Top" Margin="16,2,0,0" />
+                                                <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                                           Foreground="{Binding UserColor}" FontSize="13" MinWidth="100" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Column="2" Text="{Binding Text}" Foreground="#F4F4F4" TextWrapping="Wrap" FontSize="13" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </DockPanel>
+                </Panel>
+
+                <!-- ======== EDITOR VIEW ======== -->
+                <Panel IsVisible="{Binding IsEditorTab}">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top" Background="#202020" Padding="16,8"
+                                BorderBrush="#2C2C2C" BorderThickness="0,0,0,1" MinHeight="44">
+                            <DockPanel>
+                                <TextBlock Text="Редактор оверлея" FontSize="14" FontWeight="SemiBold" Foreground="#F4F4F4" VerticalAlignment="Center" />
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                    <ComboBox ItemsSource="{Binding EditorViewModel.SavedProfiles}"
+                                              SelectedItem="{Binding EditorViewModel.CurrentStyle}"
+                                              DisplayMemberBinding="{Binding ProfileName}" MinWidth="140" FontSize="12" />
+                                    <Button Content="Новый профиль" Command="{Binding EditorViewModel.CreateNewProfileCommand}"
+                                            Padding="8,4" CornerRadius="5" FontSize="12" Foreground="#B0B0B0" />
+                                    <Button Content="Сохранить" Command="{Binding EditorViewModel.SaveProfileCommand}"
+                                            Background="#00C896" Foreground="#111" Padding="8,4" CornerRadius="5" FontSize="12" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+
+                        <Grid ColumnDefinitions="280,*">
+                            <!-- Properties panel -->
+                            <ScrollViewer Grid.Column="0" Background="#202020" BorderBrush="#2C2C2C" BorderThickness="0,0,1,0">
+                                <StackPanel Spacing="0">
+                                    <!-- Background -->
+                                    <Border Padding="12,16" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="ФОН" FontSize="11" FontWeight="Bold" Foreground="#777" />
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Цвет" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                                    <Border Width="24" Height="24" CornerRadius="4" BorderBrush="#3A3A3A" BorderThickness="1" Background="#000000" />
+                                                    <TextBlock Text="{Binding EditorViewModel.CurrentStyle.BackgroundColor}" FontSize="12" Foreground="#F4F4F4" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Grid>
+                                            <DockPanel>
+                                                <TextBlock Text="Прозрачность" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding EditorViewModel.CurrentStyle.BackgroundOpacity, StringFormat='{}{0:F1}'}"
+                                                           FontSize="12" Foreground="#F4F4F4" Margin="6,0,0,0" VerticalAlignment="Center" />
+                                                <Slider Minimum="0" Maximum="1" Value="{Binding EditorViewModel.CurrentStyle.BackgroundOpacity}" Margin="16,0,0,0" />
+                                            </DockPanel>
+                                            <DockPanel>
+                                                <TextBlock Text="Скругление" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding EditorViewModel.CurrentStyle.BorderRadius, StringFormat='{}{0}px'}"
+                                                           FontSize="12" Foreground="#F4F4F4" Margin="6,0,0,0" VerticalAlignment="Center" />
+                                                <Slider Minimum="0" Maximum="30" Value="{Binding EditorViewModel.CurrentStyle.BorderRadius}" Margin="16,0,0,0" />
+                                            </DockPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Message -->
+                                    <Border Padding="12,16" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="СООБЩЕНИЕ" FontSize="11" FontWeight="Bold" Foreground="#777" />
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Шрифт" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{Binding EditorViewModel.CurrentStyle.MessageFontFamily}" FontSize="12" Foreground="#F4F4F4" />
+                                            </Grid>
+                                            <DockPanel>
+                                                <TextBlock Text="Размер" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding EditorViewModel.CurrentStyle.MessageFontSize, StringFormat='{}{0}px'}"
+                                                           FontSize="12" Foreground="#F4F4F4" Margin="6,0,0,0" VerticalAlignment="Center" />
+                                                <Slider Minimum="10" Maximum="32" Value="{Binding EditorViewModel.CurrentStyle.MessageFontSize}" Margin="16,0,0,0" />
+                                            </DockPanel>
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Цвет текста" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                                    <Border Width="24" Height="24" CornerRadius="4" BorderBrush="#3A3A3A" BorderThickness="1" Background="#FFFFFF" />
+                                                    <TextBlock Text="{Binding EditorViewModel.CurrentStyle.MessageColor}" FontSize="12" Foreground="#F4F4F4" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Username -->
+                                    <Border Padding="12,16" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="НИК" FontSize="11" FontWeight="Bold" Foreground="#777" />
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Жирный" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <ToggleSwitch IsChecked="{Binding EditorViewModel.CurrentStyle.UsernameBold}" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Animation -->
+                                    <Border Padding="12,16" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="АНИМАЦИЯ" FontSize="11" FontWeight="Bold" Foreground="#777" />
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Появление" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{Binding EditorViewModel.CurrentStyle.AnimationIn}" FontSize="12" Foreground="#00C896" />
+                                            </Grid>
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Исчезновение" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{Binding EditorViewModel.CurrentStyle.AnimationOut}" FontSize="12" Foreground="#00C896" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Other -->
+                                    <Border Padding="12,16" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="ПРОЧЕЕ" FontSize="11" FontWeight="Bold" Foreground="#777" />
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Иконка платформы" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <ToggleSwitch IsChecked="{Binding EditorViewModel.CurrentStyle.ShowPlatformIcon}" />
+                                            </Grid>
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Тень" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <ToggleSwitch IsChecked="{Binding EditorViewModel.CurrentStyle.ShowShadow}" />
+                                            </Grid>
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Разделитель" FontSize="12" Foreground="#B0B0B0" VerticalAlignment="Center" />
+                                                <ToggleSwitch IsChecked="{Binding EditorViewModel.CurrentStyle.ShowSeparator}" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Custom CSS -->
+                                    <Border Padding="12,16" BorderBrush="#2C2C2C" BorderThickness="0,0,0,1">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="СВОЙ CSS" FontSize="11" FontWeight="Bold" Foreground="#777" />
+                                            <TextBox Text="{Binding EditorViewModel.CurrentStyle.CustomCss}"
+                                                     AcceptsReturn="True" MinHeight="60"
+                                                     FontFamily="Cascadia Code, Fira Code, Consolas" FontSize="11"
+                                                     Watermark="/* CSS overrides */" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Apply -->
+                                    <Border Padding="12,16">
+                                        <Button Content="Применить" Command="{Binding EditorViewModel.UpdatePreviewCommand}"
+                                                Background="#00C896" Foreground="#111" Padding="12,6" CornerRadius="5"
+                                                FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Center" />
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <!-- Preview + URL bar -->
+                            <DockPanel Grid.Column="1">
+                                <Border Margin="16" Background="#000" CornerRadius="8" ClipToBounds="True">
+                                    <Grid>
+                                        <Border Background="#111" CornerRadius="8" Margin="16">
+                                            <TextBlock Text="Live Preview&#x0a;Требуется WebView компонент"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="#666" TextAlignment="Center" FontSize="14" />
+                                        </Border>
+                                        <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                Margin="8" Background="#00000099" CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="Live Preview / 400x800" FontSize="10" Foreground="#777" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <Border DockPanel.Dock="Bottom" Padding="16,8" Background="#202020"
+                                        BorderBrush="#2C2C2C" BorderThickness="0,1,0,0">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Text="OBS URL:" FontSize="11" Foreground="#777" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <Border Grid.Column="1" Background="#2A2A2A" CornerRadius="4" Padding="6,4" Margin="0,0,8,0">
+                                            <TextBlock Text="http://127.0.0.1:9274/overlay" FontSize="11"
+                                                       FontFamily="Cascadia Code, Fira Code, Consolas" Foreground="#B0B0B0" />
+                                        </Border>
+                                        <Button Grid.Column="2" Content="Копировать" Padding="6,3" CornerRadius="5" FontSize="11" Foreground="#B0B0B0" Margin="0,0,8,0" />
+                                        <Button Grid.Column="3" Content="Экспорт HTML" Command="{Binding EditorViewModel.ExportOverlayCommand}"
+                                                Background="#00C896" Foreground="#111" Padding="8,3" CornerRadius="5" FontSize="11" FontWeight="SemiBold" />
+                                    </Grid>
+                                </Border>
+                            </DockPanel>
+                        </Grid>
+                    </DockPanel>
+                </Panel>
+
+                <!-- ======== SETTINGS VIEW ======== -->
+                <Panel IsVisible="{Binding IsSettingsTab}">
+                    <DockPanel>
+                        <!-- Side Panel: Settings nav -->
+                        <Border DockPanel.Dock="Left" Width="200" Background="#202020"
+                                BorderBrush="#2C2C2C" BorderThickness="0,0,1,0" Padding="8,12">
+                            <StackPanel Spacing="2">
+                                <Border CornerRadius="5" Padding="8,6" Background="Transparent">
+                                    <TextBlock Text="Сервер" FontSize="13" Foreground="#B0B0B0" />
+                                </Border>
+                                <Border CornerRadius="5" Padding="8,6" Background="Transparent">
+                                    <TextBlock Text="Оверлей" FontSize="13" Foreground="#B0B0B0" />
+                                </Border>
+                                <Border CornerRadius="5" Padding="8,6" Background="Transparent">
+                                    <TextBlock Text="Хранение" FontSize="13" Foreground="#B0B0B0" />
+                                </Border>
+                                <Border CornerRadius="5" Padding="8,6" Background="Transparent">
+                                    <TextBlock Text="Горячие клавиши" FontSize="13" Foreground="#B0B0B0" />
+                                </Border>
+                                <Border CornerRadius="5" Padding="8,6" Background="Transparent">
+                                    <TextBlock Text="Интерфейс" FontSize="13" Foreground="#B0B0B0" />
+                                </Border>
+                                <Border CornerRadius="5" Padding="8,6" Background="#00C89620">
+                                    <TextBlock Text="Диагностика" FontSize="13" Foreground="#00C896" FontWeight="SemiBold" />
+                                </Border>
+                                <Border CornerRadius="5" Padding="8,6" Background="Transparent">
+                                    <TextBlock Text="О программе" FontSize="13" Foreground="#B0B0B0" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Diagnostics content -->
+                        <ScrollViewer>
+                            <StackPanel Margin="20,24" Spacing="20">
+                                <TextBlock Text="Диагностика сервера" FontSize="16" FontWeight="SemiBold" Foreground="#F4F4F4" />
+                                <TextBlock Text="Сервер запускается автоматически при старте приложения и перезапускается при изменении подключений."
+                                           Foreground="#777" FontSize="12" TextWrapping="Wrap" MaxWidth="600" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140"
+                                            BorderBrush="#2C2C2C" BorderThickness="1">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding ConnectedClients}" FontSize="24" FontWeight="Bold" Foreground="#00C896" HorizontalAlignment="Center" />
+                                            <TextBlock Text="Клиентов" FontSize="10" Foreground="#777" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140"
+                                            BorderBrush="#2C2C2C" BorderThickness="1">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding MessagesSent}" FontSize="24" FontWeight="Bold" Foreground="#F4F4F4" HorizontalAlignment="Center" />
+                                            <TextBlock Text="Отправлено" FontSize="10" Foreground="#777" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="#2A2A2A" CornerRadius="8" Padding="16" MinWidth="140"
+                                            BorderBrush="#2C2C2C" BorderThickness="1">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding UptimeText}" FontSize="24" FontWeight="Bold" Foreground="#F4F4F4" HorizontalAlignment="Center" />
+                                            <TextBlock Text="Время работы" FontSize="10" Foreground="#777" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Тестовое сообщение" Command="{Binding SendTestMessageCommand}"
+                                            Background="#00C896" Foreground="#111" Padding="10,4" CornerRadius="5" FontSize="12" FontWeight="SemiBold" />
+                                    <Button Content="Остановить" Command="{Binding StopServerCommand}"
+                                            Padding="10,4" CornerRadius="5" FontSize="12" Foreground="#B0B0B0" />
+                                    <Button Content="Перезапустить" Command="{Binding RestartServerCommand}"
+                                            Padding="10,4" CornerRadius="5" FontSize="12" Foreground="#B0B0B0" />
+                                </StackPanel>
+
+                                <TextBlock Text="Лог сервера" FontSize="12" FontWeight="SemiBold" Foreground="#777" />
+                                <Border Background="#151515" CornerRadius="8" MaxHeight="200"
+                                        BorderBrush="#2C2C2C" BorderThickness="1">
+                                    <ListBox ItemsSource="{Binding ServerLog}" Background="Transparent" BorderThickness="0" Padding="4">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock FontFamily="Cascadia Code, Fira Code, Consolas" FontSize="11">
+                                                    <Run Text="{Binding Timestamp}" Foreground="#777" />
+                                                    <Run Text=" [" /><Run Text="{Binding Level}" Foreground="{Binding LevelColor}" /><Run Text="] " />
+                                                    <Run Text="{Binding Message}" Foreground="#B0B0B0" />
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Panel>
+
+            </DockPanel>
+        </DockPanel>
     </DockPanel>
 </Window>
