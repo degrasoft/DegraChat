@@ -131,7 +131,7 @@ public class TwitchChatProvider : ChatProviderBase
         Logger.Debug("Twitch: User {Username} left #{Channel}", e.Username, e.Channel);
     }
 
-    private void OnDisconnected(object? sender, OnDisconnectedEventArgs e)
+    private void OnDisconnected(object? sender, EventArgs e)
     {
         Logger.Warning("Twitch: Disconnected");
         if (State == ConnectionState.Connected)

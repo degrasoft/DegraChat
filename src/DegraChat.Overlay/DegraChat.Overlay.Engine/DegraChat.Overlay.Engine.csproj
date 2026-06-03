@@ -4,6 +4,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>DegraChat.Overlay.Engine</RootNamespace>
+    <!-- Scriban 5.12.1 has known vulnerabilities; suppress until a patched version is released -->
+    <NoWarn>$(NoWarn);NU1902;NU1903;NU1904</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\DegraChat.Core\DegraChat.Core.csproj" />

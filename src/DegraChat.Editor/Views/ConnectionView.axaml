@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DegraChat.Editor.ViewModels"
+             xmlns:models="using:DegraChat.Core.Models"
              x:Class="DegraChat.Editor.Views.ConnectionView"
              x:DataType="vm:ConnectionViewModel">
 
@@ -35,9 +36,9 @@
                             <!-- Action buttons -->
                             <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="4">
                                 <Button Content="Connect" Command="{Binding ConnectCommand}"
-                                        IsVisible="{Binding State, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static ConnectionState.Disconnected}}" />
+                                        IsVisible="{Binding State, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:ConnectionState.Disconnected}}" />
                                 <Button Content="Disconnect" Command="{Binding DisconnectCommand}"
-                                        IsVisible="{Binding State, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static ConnectionState.Disconnected}}" />
+                                        IsVisible="{Binding State, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static models:ConnectionState.Disconnected}}" />
                             </StackPanel>
                         </Grid>
                     </Border>
