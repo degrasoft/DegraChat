@@ -1,8 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using DegraChat.Core.Events;
 using DegraChat.Core.Interfaces;
 using DegraChat.Core.Models;
+using DegraChat.Editor.ViewModels;
 using DegraChat.Server;
 using DegraChat.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -218,7 +220,7 @@ public partial class MainViewModel : ObservableObject
         };
 
         // Add on UI thread
-        System.Application.Current?.Dispatcher.Invoke(() =>
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             ServerLog.Add(entry);
             // Keep last 200 entries
