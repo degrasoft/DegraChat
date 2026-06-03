@@ -328,13 +328,14 @@
                                 <ItemsControl ItemsSource="{Binding ChatViewModel.Messages}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid ColumnDefinitions="36,Auto,*" Padding="4,3"
-                                                  BorderBrush="#1A1A1A" BorderThickness="0,0,0,1">
-                                                <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="9" Foreground="#444" VerticalAlignment="Top" Margin="4,1,0,0" />
-                                                <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontWeight="SemiBold"
-                                                           Foreground="{Binding UserColor}" FontSize="11" MinWidth="70" VerticalAlignment="Top" />
-                                                <TextBlock Grid.Column="2" Text="{Binding Text}" Foreground="#DDD" TextWrapping="Wrap" FontSize="11" />
-                                            </Grid>
+                                            <Border Padding="4,3" BorderBrush="#1A1A1A" BorderThickness="0,0,0,1">
+                                                <Grid ColumnDefinitions="36,Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="9" Foreground="#444" VerticalAlignment="Top" Margin="4,1,0,0" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                                               Foreground="{Binding UserColor}" FontSize="11" MinWidth="70" VerticalAlignment="Top" />
+                                                    <TextBlock Grid.Column="2" Text="{Binding Text}" Foreground="#DDD" TextWrapping="Wrap" FontSize="11" />
+                                                </Grid>
+                                            </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
